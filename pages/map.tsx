@@ -3,7 +3,8 @@ import Head from 'next/head'
 import { useEffect, useReducer } from 'react'
 import mapboxgl, { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
 import { reducer, EditorState } from '../lib/reducer'
-import { nodesToGeoJson, edgesToGeoJson } from '../lib/map'
+import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
+import { editingEdgeLayer } from '../lib/layers'
 import styles from '../styles/Map.module.css'
 
 const options: MapboxOptions = {
@@ -44,6 +45,7 @@ const Map: NextPage = () => {
       })
       map.on('click', e => {
         if (!e.originalEvent.defaultPrevented) {
+          // TODO: editingでfeature以外をclickしたらnode, edge両方作成
           dispatch({ type: 'addNode', payload: e.lngLat })
         }
       })
@@ -55,6 +57,11 @@ const Map: NextPage = () => {
         type: 'geojson',
         data: edgesToGeoJson(state.edges, state.nodes)
       })
+      map.addSource('editingEdge', {
+        type: 'geojson',
+        data: lngLatEdgeToGeoJson() // empty
+      })
+      map.addLayer(editingEdgeLayer)
       map.on('mousemove', 'nodes', e => {
         const hoverId = e.features?.[0].id
         if (hoverId !== undefined) {
@@ -63,6 +70,9 @@ const Map: NextPage = () => {
       })
       map.on('mouseleave', 'nodes', () => {
         dispatch({ type: 'mouseleave' })
+      })
+      map.on('mousemove', e => {
+        dispatch({ type: 'mousemove', payload: e.lngLat })
       })
     })
   }, [state.map])
@@ -117,6 +127,18 @@ const Map: NextPage = () => {
     }
     map.addLayer(edgesLayer)
   }, [state.edges])
+
+  useEffect(() => {
+    const map = state.map
+    const editingEdgeSource = map?.getSource('editingEdge') as GeoJSONSource
+    if (!map || !editingEdgeSource) return
+    if (state.editingEdge) {
+      editingEdgeSource.setData(lngLatEdgeToGeoJson(state.editingEdge))
+      map.setLayoutProperty('editingEdge', 'visibility', 'visible')
+    } else {
+      map.setLayoutProperty('editingEdge', 'visibility', 'none')
+    }
+  }, [state.editingEdge])
 
   return (
     <>

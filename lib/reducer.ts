@@ -1,5 +1,5 @@
 import mapboxgl, { MapboxOptions } from 'mapbox-gl'
-import { Node, Edge } from './map'
+import { Node, Edge, LngLatEdge } from './map'
 
 export type EditorState = {
   map?: mapboxgl.Map,
@@ -8,6 +8,7 @@ export type EditorState = {
   edges: Edge[],
   hoverNodeId?: Node['id'],
   selectedNodeForEdge?: Node['id'],
+  editingEdge?: LngLatEdge,
 }
 
 type Action =
@@ -16,6 +17,7 @@ type Action =
   | { type: 'hover', payload: Node['id']}
   | { type: 'mouseleave' }
   | { type: 'clickNode', payload: Node['id']}
+  | { type: 'mousemove', payload: mapboxgl.LngLat }
 
 export const reducer = (state: EditorState, action: Action) => {
   switch(action.type) {
@@ -71,13 +73,23 @@ export const reducer = (state: EditorState, action: Action) => {
         return {
           ...state,
           edges,
-          selectedNodeForEdge: undefined
+          selectedNodeForEdge: undefined,
+          editingEdge: undefined
         }
       } else {
         // Start edge editing mode
         return {
           ...state,
           selectedNodeForEdge: clickedNodeId
+        }
+      }
+    case 'mousemove':
+      if (state.selectedNodeForEdge !== undefined) {
+        const source = state.nodes.find(n => n.id === state.selectedNodeForEdge)
+        const editingEdge = source ? [source.lngLat, action.payload] : undefined
+        return {
+          ...state,
+          editingEdge
         }
       }
     default:
