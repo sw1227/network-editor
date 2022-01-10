@@ -63,8 +63,7 @@ const Map: NextPage = () => {
       })
       map.on('click', e => {
         if (!e.originalEvent.defaultPrevented) {
-          // TODO: editingでfeature以外をclickしたらnode, edge両方作成
-          dispatch({ type: 'addNode', payload: e.lngLat })
+          dispatch({ type: 'clickMap', payload: e.lngLat })
         }
       })
       map.on('mousemove', 'nodes', e => {

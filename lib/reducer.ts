@@ -14,7 +14,7 @@ export type EditorState = {
 
 type Action =
   | { type: 'initMap', payload: MapboxOptions }
-  | { type: 'addNode', payload: mapboxgl.LngLat }
+  | { type: 'clickMap', payload: mapboxgl.LngLat }
   | { type: 'hover', payload: Node['id']}
   | { type: 'mouseleave' }
   | { type: 'clickNode', payload: Node['id']}
@@ -28,11 +28,26 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         ...state,
         map,
       }
-    case 'addNode':
-      return {
-        ...state,
-        nodes: [...state.nodes, { lngLat: action.payload, id: state.currentNodeIdx }],
-        currentNodeIdx: state.currentNodeIdx + 1
+    case 'clickMap':
+      if (state.selectedNodeForEdge !== undefined) {
+        // Add Node and Edge
+        const newNode = { lngLat: action.payload, id: state.currentNodeIdx }
+        const newEdge: Edge = [state.selectedNodeForEdge, newNode.id]
+        return {
+          ...state,
+          nodes: [...state.nodes, newNode],
+          currentNodeIdx: state.currentNodeIdx + 1,
+          edges: [...state.edges, newEdge],
+          selectedNodeForEdge: undefined,
+          editingEdge: undefined
+        }
+      } else {
+        // Add Node
+        return {
+          ...state,
+          nodes: [...state.nodes, { lngLat: action.payload, id: state.currentNodeIdx }],
+          currentNodeIdx: state.currentNodeIdx + 1
+        }
       }
     case 'hover':
       const hoverNodeId = action.payload
