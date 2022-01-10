@@ -7,6 +7,7 @@ export type EditorState = {
   nodes: Node[],
   edges: Edge[],
   hoverNodeId?: Node['id'],
+  selectedNodeForEdge?: Node['id'],
 }
 
 type Action =
@@ -14,6 +15,7 @@ type Action =
   | { type: 'addNode', payload: mapboxgl.LngLat }
   | { type: 'hover', payload: Node['id']}
   | { type: 'mouseleave' }
+  | { type: 'clickNode', payload: Node['id']}
 
 export const reducer = (state: EditorState, action: Action) => {
   switch(action.type) {
@@ -58,6 +60,25 @@ export const reducer = (state: EditorState, action: Action) => {
       return {
         ...state,
         hoverNodeId: undefined
+      }
+    case 'clickNode':
+      const clickedNodeId = action.payload
+      if (state.selectedNodeForEdge !== undefined) {
+        // Add new edge
+        const edges = [...state.edges]
+        const newEdge: Edge = [state.selectedNodeForEdge, clickedNodeId]
+        if (newEdge[0] !== newEdge[1]) edges.push(newEdge)
+        return {
+          ...state,
+          edges,
+          selectedNodeForEdge: undefined
+        }
+      } else {
+        // Start edge editing mode
+        return {
+          ...state,
+          selectedNodeForEdge: clickedNodeId
+        }
       }
     default:
       return state
