@@ -11,6 +11,7 @@ const options: MapboxOptions = {
   accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
   container: 'mapbox',
   style: 'mapbox://styles/mapbox/light-v10',
+  localIdeographFontFamily: 'sans-serif',
   center: [139.7, 35.7],
   zoom: 12
 }
@@ -38,18 +39,17 @@ const nodesToGeoJson = (nodes: Node[]): FeatureCollection => {
 
 const Map: NextPage = () => {
   // States
-  const [map, setMap] = useState<mapboxgl.Map>()
   const [state, dispatch] = useReducer(reducer, initialState)
 
   // Create map instance on initial render
   useEffect(() => {
-    const map = new mapboxgl.Map(options)
-    setMap(map)
+    dispatch({ type: 'initMap', payload: options })
   }, [])
 
   // Add source and event listener to the map
   useEffect(() => {
-    if (!map) return
+    if (!state.map) return
+    const map = state.map
     map.on('style.load', () => {
       map.on('click', e => {
         dispatch({ type: 'addNode', payload: e.lngLat })
@@ -61,11 +61,21 @@ const Map: NextPage = () => {
       map.on('click', 'nodes', e => {
         console.log('TODO: click feature', e.features)
       })
+      map.on('mousemove', 'nodes', e => {
+        const hoverId = e.features?.[0].id
+        if (hoverId !== undefined) {
+          dispatch({ type: 'hover', payload: hoverId as number })
+        }
+      })
+      map.on('mouseleave', 'nodes', () => {
+        dispatch({ type: 'mouseleave' })
+      })
     })
-  }, [map])
+  }, [state.map])
 
   // Update layer according to the nodes
   useEffect(() => {
+    const map = state.map
     const nodesSource = map?.getSource('nodes') as GeoJSONSource
     if (!map || !nodesSource) return
     nodesSource.setData(nodesToGeoJson(state.nodes))
@@ -79,7 +89,14 @@ const Map: NextPage = () => {
       paint: {
         'circle-radius': 6,
         'circle-color': '#f08',
-        'circle-opacity': 0.4
+        'circle-opacity': 0.4,
+        'circle-stroke-width': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          2,
+          0
+        ],
+        'circle-stroke-color': '#f00',
       }
     }
     map.addLayer(nodesLayer)
