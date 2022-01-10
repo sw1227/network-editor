@@ -1,4 +1,5 @@
 import type { NextPage } from 'next'
+import Head from 'next/head'
 import { useEffect, useReducer, useState } from 'react'
 import mapboxgl, { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
 import { FeatureCollection } from 'geojson'
@@ -85,7 +86,13 @@ const Map: NextPage = () => {
   }, [state.nodes])
 
   return (
-    <div id="mapbox" className={styles.mapbox}></div>
+    <>
+      <Head>
+        <title>Network editor</title>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css' rel='stylesheet' />
+      </Head>
+      <div id="mapbox" className={styles.mapbox}></div>
+    </>
   )
 }
 
