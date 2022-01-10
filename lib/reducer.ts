@@ -1,3 +1,4 @@
+import { Reducer } from 'react'
 import mapboxgl, { MapboxOptions } from 'mapbox-gl'
 import { Node, Edge, LngLatEdge } from './map'
 
@@ -19,7 +20,7 @@ type Action =
   | { type: 'clickNode', payload: Node['id']}
   | { type: 'mousemove', payload: mapboxgl.LngLat }
 
-export const reducer = (state: EditorState, action: Action) => {
+export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
     case 'initMap':
       const map = new mapboxgl.Map(action.payload)
@@ -86,7 +87,7 @@ export const reducer = (state: EditorState, action: Action) => {
     case 'mousemove':
       if (state.selectedNodeForEdge !== undefined) {
         const source = state.nodes.find(n => n.id === state.selectedNodeForEdge)
-        const editingEdge = source ? [source.lngLat, action.payload] : undefined
+        const editingEdge = source ? [source.lngLat, action.payload] as LngLatEdge : undefined
         return {
           ...state,
           editingEdge
