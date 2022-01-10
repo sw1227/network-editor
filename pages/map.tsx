@@ -1,10 +1,9 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import mapboxgl, { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
-import { FeatureCollection } from 'geojson'
 import { reducer, EditorState } from '../lib/reducer'
-import { Node, Edge } from '../lib/map'
+import { nodesToGeoJson, edgesToGeoJson } from '../lib/map'
 import styles from '../styles/Map.module.css'
 
 const options: MapboxOptions = {
@@ -20,42 +19,6 @@ const initialState: EditorState = {
   currentNodeIdx: 0,
   nodes: [],
   edges: []
-}
-
-const nodesToGeoJson = (nodes: Node[]): FeatureCollection => {
-  return {
-    type: 'FeatureCollection',
-    features: nodes.map(node => ({
-      type: 'Feature',
-      id: node.id,
-      geometry: {
-        type: 'Point',
-        coordinates: [node.lngLat.lng, node.lngLat.lat]
-      },
-      properties: {}
-    }))
-  }
-}
-
-const edgesToGeoJson = (edges: Edge[], nodes: Node[]): FeatureCollection => {
-  return {
-    type: 'FeatureCollection',
-    features: edges.map(edge => {
-      const p1 = nodes.find(n => n.id === edge[0])
-      const p2 = nodes.find(n => n.id === edge[1])
-      return {
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: (!p1 || !p2) ? [] : [
-            [p1.lngLat.lng, p1.lngLat.lat],
-            [p2.lngLat.lng, p2.lngLat.lat]
-          ]
-        },
-        properties: {}
-      }
-    })
-  }
 }
 
 const Map: NextPage = () => {
