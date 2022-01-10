@@ -1,10 +1,10 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect, useReducer } from 'react'
-import mapboxgl, { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
+import { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
 import { reducer, EditorState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
-import { editingEdgeLayer } from '../lib/layers'
+import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
 import styles from '../styles/Map.module.css'
 
 const options: MapboxOptions = {
@@ -36,6 +36,24 @@ const Map: NextPage = () => {
     if (!state.map) return
     const map = state.map
     map.on('style.load', () => {
+      // Sources and layers
+      map.addSource('nodes', {
+        type: 'geojson',
+        data: nodesToGeoJson(state.nodes)
+      })
+      map.addSource('edges', {
+        type: 'geojson',
+        data: edgesToGeoJson(state.edges, state.nodes)
+      })
+      map.addSource('editingEdge', {
+        type: 'geojson',
+        data: lngLatEdgeToGeoJson() // empty
+      })
+      map.addLayer(nodesLayer)
+      map.addLayer(edgesLayer)
+      map.addLayer(editingEdgeLayer)
+
+      // Event listeners
       map.on('click', 'nodes', e => {
         const clickedId = e.features?.[0].id
         if (clickedId !== undefined) {
@@ -49,19 +67,6 @@ const Map: NextPage = () => {
           dispatch({ type: 'addNode', payload: e.lngLat })
         }
       })
-      map.addSource('nodes', {
-        type: 'geojson',
-        data: nodesToGeoJson(state.nodes)
-      })
-      map.addSource('edges', {
-        type: 'geojson',
-        data: edgesToGeoJson(state.edges, state.nodes)
-      })
-      map.addSource('editingEdge', {
-        type: 'geojson',
-        data: lngLatEdgeToGeoJson() // empty
-      })
-      map.addLayer(editingEdgeLayer)
       map.on('mousemove', 'nodes', e => {
         const hoverId = e.features?.[0].id
         if (hoverId !== undefined) {
@@ -83,27 +88,6 @@ const Map: NextPage = () => {
     const nodesSource = map?.getSource('nodes') as GeoJSONSource
     if (!map || !nodesSource) return
     nodesSource.setData(nodesToGeoJson(state.nodes))
-
-    if (map.getLayer('nodes')) map.removeLayer('nodes')
-    const nodesLayer: mapboxgl.CircleLayer = {
-      id: 'nodes',
-      type: 'circle',
-      source: 'nodes',
-      layout: {},
-      paint: {
-        'circle-radius': 6,
-        'circle-color': '#f08',
-        'circle-opacity': 0.4,
-        'circle-stroke-width': [
-          'case',
-          ['boolean', ['feature-state', 'hover'], false],
-          2,
-          0
-        ],
-        'circle-stroke-color': '#f00',
-      }
-    }
-    map.addLayer(nodesLayer)
   }, [state.nodes])
 
   // Update layer according to the edges
@@ -112,20 +96,6 @@ const Map: NextPage = () => {
     const edgeSource = map?.getSource('edges') as GeoJSONSource
     if (!map || !edgeSource) return
     edgeSource.setData(edgesToGeoJson(state.edges, state.nodes))
-
-    if (map.getLayer('edges')) map.removeLayer('edges')
-    const edgesLayer: mapboxgl.LineLayer = {
-      id: 'edges',
-      type: 'line',
-      source: 'edges',
-      layout: {},
-      paint: {
-        'line-color': '#f08',
-        'line-opacity': 0.4,
-        'line-width': 3,
-      }
-    }
-    map.addLayer(edgesLayer)
   }, [state.edges])
 
   useEffect(() => {
