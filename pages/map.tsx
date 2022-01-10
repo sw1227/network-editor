@@ -81,31 +81,27 @@ const Map: NextPage = () => {
     })
   }, [state.map])
 
-  // Update layer according to the nodes
+  // Update nodes layer according to the nodes state
   useEffect(() => {
-    const map = state.map
-    const nodesSource = map?.getSource('nodes') as GeoJSONSource
-    if (!map || !nodesSource) return
-    nodesSource.setData(nodesToGeoJson(state.nodes))
+    const nodesSource = state.map?.getSource('nodes') as GeoJSONSource | undefined
+    if (nodesSource) nodesSource.setData(nodesToGeoJson(state.nodes))
   }, [state.nodes])
 
-  // Update layer according to the edges
+  // Update edges layer according to the edges state
   useEffect(() => {
-    const map = state.map
-    const edgeSource = map?.getSource('edges') as GeoJSONSource
-    if (!map || !edgeSource) return
-    edgeSource.setData(edgesToGeoJson(state.edges, state.nodes))
+    const edgeSource = state.map?.getSource('edges') as GeoJSONSource | undefined
+    if (edgeSource) edgeSource.setData(edgesToGeoJson(state.edges, state.nodes))
   }, [state.edges])
 
+  // Update editingEdge layer according to the editingEdge state
   useEffect(() => {
-    const map = state.map
-    const editingEdgeSource = map?.getSource('editingEdge') as GeoJSONSource
-    if (!map || !editingEdgeSource) return
+    const editingEdgeSource = state.map?.getSource('editingEdge') as GeoJSONSource | undefined
+    if (!state.map || !editingEdgeSource) return
     if (state.editingEdge) {
       editingEdgeSource.setData(lngLatEdgeToGeoJson(state.editingEdge))
-      map.setLayoutProperty('editingEdge', 'visibility', 'visible')
+      state.map.setLayoutProperty('editingEdge', 'visibility', 'visible')
     } else {
-      map.setLayoutProperty('editingEdge', 'visibility', 'none')
+      state.map.setLayoutProperty('editingEdge', 'visibility', 'none')
     }
   }, [state.editingEdge])
 
