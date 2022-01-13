@@ -19,6 +19,7 @@ type Action =
   | { type: 'mouseleave' }
   | { type: 'clickNode', payload: Node['id']}
   | { type: 'mousemove', payload: mapboxgl.LngLat }
+  | { type: 'escape' }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -106,6 +107,14 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         return {
           ...state,
           editingEdge
+        }
+      }
+    case 'escape':
+      if (state.selectedNodeForEdge !== undefined) {
+        return {
+          ...state,
+          selectedNodeForEdge: undefined,
+          editingEdge: undefined,
         }
       }
     default:

@@ -78,6 +78,12 @@ const Map: NextPage = () => {
       map.on('mousemove', e => {
         dispatch({ type: 'mousemove', payload: e.lngLat })
       })
+      map.getCanvas().addEventListener('keydown', e => {
+        e.preventDefault();
+        if (e.key === 'Escape') {
+          dispatch({ type: 'escape' })
+        }
+      })
     })
   }, [state.map])
 
