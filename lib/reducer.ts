@@ -21,6 +21,7 @@ type Action =
   | { type: 'mousemove', payload: mapboxgl.LngLat }
   | { type: 'escape' }
   | { type: 'removeNode', payload: Node['id'] }
+  | { type: 'removeEdgeByIndex', payload: number }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -125,6 +126,11 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         ...state,
         nodes: state.nodes.filter(node => node.id !== action.payload),
         edges: state.edges.filter(edge => !edge.includes(action.payload))
+      }
+    case 'removeEdgeByIndex':
+      return {
+        ...state,
+        edges: state.edges.filter((_, i) => i !== action.payload)
       }
     default:
       return state

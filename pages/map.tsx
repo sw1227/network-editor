@@ -9,6 +9,7 @@ import { reducer, EditorState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
 import NodeTable from '../components/nodetable'
+import EdgeTable from '../components/edgetable'
 import styles from '../styles/Map.module.css'
 
 const options: MapboxOptions = {
@@ -132,6 +133,12 @@ const Map: NextPage = () => {
           onLeaveRow={() => dispatch({ type: 'mouseleave' })}
           onDeleteRow={(nodeId: number) => () => { dispatch({ type: 'removeNode', payload: nodeId }) }}
         />
+        <EdgeTable
+          edges={state.edges}
+          onEnterRow={(edgeIdx: number) => () => { /* TODO: hover edge */}}
+          onLeaveRow={() => { }}
+          onDeleteRow={(edgeIdx: number) => () => { dispatch({ type: 'removeEdgeByIndex', payload: edgeIdx }) }}
+        />
         <Divider />
       </SidePaper>
     </>
@@ -147,4 +154,5 @@ const SidePaper = styled(Paper)`
   width: 350px;
   height: calc(100vh - 20px);
   padding: 10px;
+  overflow: scroll;
 `;
