@@ -11,6 +11,7 @@ import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import IconButton from '@mui/material/IconButton'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import Tooltip from '@mui/material/Tooltip'
 import { reducer, EditorState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
@@ -140,9 +141,11 @@ const Map: NextPage = () => {
       <SidePaper>
         <ListItem
           secondaryAction={
-            <IconButton edge="end" onClick={() => setModalOpen(true)}>
-              <FileDownloadIcon />
-            </IconButton>
+            <Tooltip title="Export">
+              <IconButton edge="end" onClick={() => setModalOpen(true)}>
+                <FileDownloadIcon />
+              </IconButton>
+            </Tooltip>
           }
         >
           <ListItemText
