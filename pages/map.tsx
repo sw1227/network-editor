@@ -16,6 +16,7 @@ import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
 import NodeTable from '../components/nodetable'
 import EdgeTable from '../components/edgetable'
+import ExportModal from '../components/exportmodal'
 import styles from '../styles/Map.module.css'
 
 const options: MapboxOptions = {
@@ -36,6 +37,7 @@ const initialState: EditorState = {
 const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [modalOpen, setModalOpen] = useState(false)
 
   // Create map instance on initial render
   useEffect(() => {
@@ -129,10 +131,16 @@ const Map: NextPage = () => {
         <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css' rel='stylesheet' />
       </Head>
       <div id="mapbox" className={styles.mapbox}></div>
+      <ExportModal
+        open={modalOpen}
+        onCloseModal={() => setModalOpen(false)}
+        nodes={state.nodes}
+        edges={state.edges}
+      />
       <SidePaper>
         <ListItem
           secondaryAction={
-            <IconButton edge="end">
+            <IconButton edge="end" onClick={() => setModalOpen(true)}>
               <FileDownloadIcon />
             </IconButton>
           }
