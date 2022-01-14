@@ -20,8 +20,9 @@ import { Node } from '../lib/map'
 
 const format = (num: number, len: number) => Math.round(num * 10 ** len) / 10 ** len;
 
-const NodeTable = ({ nodes, onEnterRow, onLeaveRow, onDeleteRow }: {
+const NodeTable = ({ nodes, hoverNodeId, onEnterRow, onLeaveRow, onDeleteRow }: {
   nodes: Node[],
+  hoverNodeId: Node['id'],
   onEnterRow: (node: Node['id']) => () => void,
   onLeaveRow: () => void,
   onDeleteRow: (node: Node['id']) => () => void,
@@ -55,6 +56,7 @@ const NodeTable = ({ nodes, onEnterRow, onLeaveRow, onDeleteRow }: {
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   onMouseEnter={onEnterRow(node.id)}
                   onMouseLeave={onLeaveRow}
+                  style={{background: hoverNodeId === node.id ? '#def' : 'white'}}
                 >
                   <TableCell component="th" scope="row">{node.id}</TableCell>
                   <TableCell align="left">{format(node.lngLat.lat, 6)}</TableCell>

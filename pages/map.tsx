@@ -159,6 +159,7 @@ const Map: NextPage = () => {
           <Divider />
           <NodeTable
             nodes={state.nodes}
+            hoverNodeId={state.hoverNodeId}
             onEnterRow={(nodeId: number) => () => dispatch({ type: 'hover', payload: nodeId })}
             onLeaveRow={() => dispatch({ type: 'mouseleave' })}
             onDeleteRow={(nodeId: number) => () => { dispatch({ type: 'removeNode', payload: nodeId }) }}
