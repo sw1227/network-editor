@@ -20,6 +20,7 @@ type Action =
   | { type: 'clickNode', payload: Node['id']}
   | { type: 'mousemove', payload: mapboxgl.LngLat }
   | { type: 'escape' }
+  | { type: 'removeNode', payload: Node['id'] }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -116,6 +117,14 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
           selectedNodeForEdge: undefined,
           editingEdge: undefined,
         }
+      } else {
+        return state
+      }
+    case 'removeNode':
+      return {
+        ...state,
+        nodes: state.nodes.filter(node => node.id !== action.payload),
+        edges: state.edges.filter(edge => !edge.includes(action.payload))
       }
     default:
       return state

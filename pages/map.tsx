@@ -1,7 +1,25 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
+import styled from 'styled-components';
+import Paper from '@mui/material/Paper';
+import Divider from '@mui/material/Divider';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import EditIcon from '@mui/icons-material/Edit';
+import Collapse from '@mui/material/Collapse';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import { reducer, EditorState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
@@ -22,9 +40,12 @@ const initialState: EditorState = {
   edges: []
 }
 
+const format = (num: number, len: number) => Math.round(num * 10 ** len) / 10 ** len;
+
 const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [nodesModalOpen, setNodesModalOpen] = useState(true)
 
   // Create map instance on initial render
   useEffect(() => {
@@ -118,8 +139,68 @@ const Map: NextPage = () => {
         <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css' rel='stylesheet' />
       </Head>
       <div id="mapbox" className={styles.mapbox}></div>
+      <SidePaper>
+        Network editor
+        <Divider />
+        <ListItemButton onClick={() => { setNodesModalOpen(!nodesModalOpen) }}>
+          <ListItemIcon>
+            <EditIcon />
+          </ListItemIcon>
+          <ListItemText primary="Nodes" />
+          {nodesModalOpen ? <ExpandLess /> : <ExpandMore />}
+        </ListItemButton>
+        <Collapse in={nodesModalOpen} timeout="auto" unmountOnExit>
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 20 }} size="small" aria-label="a dense table">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center">id</TableCell>
+                  <TableCell align="center">latitude</TableCell>
+                  <TableCell align="center">longitude</TableCell>
+                  <TableCell align="center">Delete</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {state.nodes.map((node) => (
+                  <HoverRow
+                    key={node.id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    onMouseEnter={() => { dispatch({ type: 'hover', payload: node.id }) }}
+                    onMouseLeave={() => { dispatch({ type: 'mouseleave' }) }}
+                  >
+                    <TableCell component="th" scope="row">{node.id}</TableCell>
+                    <TableCell align="left">{format(node.lngLat.lat, 6)}</TableCell>
+                    <TableCell align="left">{format(node.lngLat.lng, 6)}</TableCell>
+                    <TableCell align="center">
+                      <IconButton aria-label="delete" size="small" onClick={() => { dispatch({ type: 'removeNode', payload: node.id }) }}>
+                        <DeleteIcon fontSize="inherit" />
+                      </IconButton>
+                    </TableCell>
+                  </HoverRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Collapse>
+        <Divider />
+      </SidePaper>
     </>
   )
 }
 
 export default Map
+
+const SidePaper = styled(Paper)`
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 350px;
+  height: calc(100vh - 20px);
+  padding: 10px;
+`;
+
+const HoverRow = styled(TableRow)`
+  &:hover {
+    background: #def;
+  }
+`;
