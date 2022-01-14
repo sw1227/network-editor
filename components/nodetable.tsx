@@ -38,7 +38,7 @@ const NodeTable = ({ nodes, onEnterRow, onLeaveRow, onDeleteRow }: {
         {modalOpen ? <ExpandLess /> : <ExpandMore />}
       </ListItemButton>
       <Collapse in={modalOpen} timeout="auto" unmountOnExit>
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} elevation={0}>
           <Table sx={{ minWidth: 20 }} size="small" aria-label="a dense table">
             <TableHead>
               <TableRow>

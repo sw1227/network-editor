@@ -2,9 +2,15 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect, useReducer, useState } from 'react'
 import { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
-import styled from 'styled-components';
-import Paper from '@mui/material/Paper';
-import Divider from '@mui/material/Divider';
+import styled from 'styled-components'
+import Paper from '@mui/material/Paper'
+import Divider from '@mui/material/Divider'
+import List from '@mui/material/List'
+import ListSubheader from '@mui/material/ListSubheader'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import IconButton from '@mui/material/IconButton'
+import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import { reducer, EditorState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
@@ -30,7 +36,6 @@ const initialState: EditorState = {
 const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
-  const [nodesModalOpen, setNodesModalOpen] = useState(true)
 
   // Create map instance on initial render
   useEffect(() => {
@@ -125,21 +130,37 @@ const Map: NextPage = () => {
       </Head>
       <div id="mapbox" className={styles.mapbox}></div>
       <SidePaper>
-        Network editor
-        <Divider />
-        <NodeTable
-          nodes={state.nodes}
-          onEnterRow={(nodeId: number) => () => dispatch({ type: 'hover', payload: nodeId })}
-          onLeaveRow={() => dispatch({ type: 'mouseleave' })}
-          onDeleteRow={(nodeId: number) => () => { dispatch({ type: 'removeNode', payload: nodeId }) }}
-        />
-        <EdgeTable
-          edges={state.edges}
-          onEnterRow={(edgeIdx: number) => () => { /* TODO: hover edge */}}
-          onLeaveRow={() => { }}
-          onDeleteRow={(edgeIdx: number) => () => { dispatch({ type: 'removeEdgeByIndex', payload: edgeIdx }) }}
-        />
-        <Divider />
+        <ListItem
+          secondaryAction={
+            <IconButton edge="end">
+              <FileDownloadIcon />
+            </IconButton>
+          }
+        >
+          <ListItemText
+            primary="Network editor"
+          />
+        </ListItem>
+        <List
+          sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
+          subheader={<ListSubheader>Settings</ListSubheader>}
+        >
+          <Divider />
+          <NodeTable
+            nodes={state.nodes}
+            onEnterRow={(nodeId: number) => () => dispatch({ type: 'hover', payload: nodeId })}
+            onLeaveRow={() => dispatch({ type: 'mouseleave' })}
+            onDeleteRow={(nodeId: number) => () => { dispatch({ type: 'removeNode', payload: nodeId }) }}
+          />
+          <Divider />
+          <EdgeTable
+            edges={state.edges}
+            onEnterRow={(edgeIdx: number) => () => { /* TODO: hover edge */ }}
+            onLeaveRow={() => { }}
+            onDeleteRow={(edgeIdx: number) => () => { dispatch({ type: 'removeEdgeByIndex', payload: edgeIdx }) }}
+          />
+          <Divider />
+        </List>
       </SidePaper>
     </>
   )
