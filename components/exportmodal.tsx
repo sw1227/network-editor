@@ -27,7 +27,7 @@ const createNodeLinkData = (nodes: Node[], edges: Edge[]) => {
   }
 }
 
-const createGeoJsonData = (nodes: Node[], edges: Edges[]): FeatureCollection => {
+const createGeoJsonData = (nodes: Node[], edges: Edge[]): FeatureCollection => {
   return {
     type: 'FeatureCollection',
     features: [
@@ -54,7 +54,9 @@ const createGeoJsonData = (nodes: Node[], edges: Edges[]): FeatureCollection => 
             ],
           },
           properties: {
-            // TODO: node info?
+            source: edge.source,
+            target: edge.target,
+            id: edge.id,
           }
         } as Feature
       })
