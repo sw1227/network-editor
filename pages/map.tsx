@@ -9,7 +9,6 @@ import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import ListSubheader from '@mui/material/ListSubheader'
 import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
 import IconButton from '@mui/material/IconButton'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import Tooltip from '@mui/material/Tooltip'
@@ -207,9 +206,7 @@ const Map: NextPage = () => {
             </Stack>
           }
         >
-          <ListItemText
-            primary="Network editor"
-          />
+          <h4>Network Editor</h4>
         </ListItem>
         <List
           sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
@@ -248,6 +245,6 @@ const SidePaper = styled(Paper)`
   top: 0px;
   width: 350px;
   height: 100vh;
-  padding: 10px;
+  padding: 0px;
   overflow: scroll;
 `
