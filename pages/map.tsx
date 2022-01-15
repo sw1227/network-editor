@@ -4,6 +4,7 @@ import { useEffect, useReducer, useState } from 'react'
 import { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
 import styled from 'styled-components'
 import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import ListSubheader from '@mui/material/ListSubheader'
@@ -12,6 +13,7 @@ import ListItemText from '@mui/material/ListItemText'
 import IconButton from '@mui/material/IconButton'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import Tooltip from '@mui/material/Tooltip'
+import CropFreeIcon from '@mui/icons-material/CropFree'
 import { reducer, EditorState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
@@ -136,6 +138,18 @@ const Map: NextPage = () => {
     }
   }, [state.editingEdge])
 
+  const fitMapToNodes = () => {
+    if (state.nodes.length < 3) return;
+    const minLng = Math.min(...state.nodes.map(n => n.lngLat.lng))
+    const maxLng = Math.max(...state.nodes.map(n => n.lngLat.lng))
+    const minLat = Math.min(...state.nodes.map(n => n.lngLat.lat))
+    const maxLat = Math.max(...state.nodes.map(n => n.lngLat.lat))
+    state.map?.fitBounds([
+      [minLng, minLat], // southwestern corner of the bounds
+      [maxLng, maxLat] // northeastern corner of the bounds
+    ])
+  }
+
   return (
     <>
       <Head>
@@ -152,11 +166,18 @@ const Map: NextPage = () => {
       <SidePaper>
         <ListItem
           secondaryAction={
-            <Tooltip title="Export">
-              <IconButton edge="end" onClick={() => setModalOpen(true)}>
-                <FileDownloadIcon />
-              </IconButton>
-            </Tooltip>
+            <Stack direction="row" spacing={2}>
+              <Tooltip title="Export">
+                <IconButton edge="end" onClick={() => setModalOpen(true)}>
+                  <FileDownloadIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Fit to nodes">
+                <IconButton edge="end" onClick={fitMapToNodes} disabled={state.nodes.length < 3}>
+                  <CropFreeIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           }
         >
           <ListItemText
@@ -196,10 +217,10 @@ export default Map
 
 const SidePaper = styled(Paper)`
   position: absolute;
-  left: 10px;
-  top: 10px;
+  left: 0px;
+  top: 0px;
   width: 350px;
-  height: calc(100vh - 20px);
+  height: 100vh;
   padding: 10px;
   overflow: scroll;
-`;
+`
