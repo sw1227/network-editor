@@ -6,7 +6,11 @@ export type Node = {
   id: number
 }
 
-export type Edge = [Node['id'], Node['id']]
+export type Edge = {
+  source: Node['id'],
+  target: Node['id'],
+  id: number,
+}
 
 export type LngLatEdge = [mapboxgl.LngLat, mapboxgl.LngLat]
 
@@ -33,10 +37,11 @@ export const edgesToGeoJson = (edges: Edge[], nodes: Node[]): FeatureCollection 
 }
 
 export const edgeToGeoJson = (edge: Edge, nodes: Node[]): Feature => {
-  const p1 = nodes.find(n => n.id === edge[0])
-  const p2 = nodes.find(n => n.id === edge[1])
+  const p1 = nodes.find(n => n.id === edge.source)
+  const p2 = nodes.find(n => n.id === edge.target)
   return {
     type: 'Feature',
+    id: edge.id,
     geometry: {
       type: 'LineString',
       coordinates: (!p1 || !p2) ? [] : [

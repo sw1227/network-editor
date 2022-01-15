@@ -18,9 +18,10 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { Edge } from '../lib/map'
 
-const EdgeTable = ({ edges, onEnterRow, onLeaveRow, onDeleteRow }: {
+const EdgeTable = ({ edges, hoverEdgeId, onEnterRow, onLeaveRow, onDeleteRow }: {
   edges: Edge[],
-  onEnterRow: (edgeIdx: number) => () => void,
+  hoverEdgeId: Edge['id'] | undefined,
+  onEnterRow: (edgeId: number) => () => void,
   onLeaveRow: () => void,
   onDeleteRow: (edgeIdx: number) => () => void,
 }) => {
@@ -40,23 +41,24 @@ const EdgeTable = ({ edges, onEnterRow, onLeaveRow, onDeleteRow }: {
           <Table sx={{ minWidth: 20 }} size="small" aria-label="a dense table">
             <TableHead>
               <TableRow>
-                <TableCell align="center"></TableCell>
+                <TableCell align="center">id</TableCell>
                 <TableCell align="center">Edge info</TableCell>
                 <TableCell align="center">Delete</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {edges.map((edge, idx) => (
+              {edges.map(edge => (
                 <HoverRow
-                  key={idx}
+                  key={edge.id}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  onMouseEnter={onEnterRow(idx)}
+                  onMouseEnter={onEnterRow(edge.id)}
                   onMouseLeave={onLeaveRow}
+                  style={{ background: hoverEdgeId === edge.id ? '#def' : 'white' }}
                 >
-                  <TableCell component="th" scope="row">{idx}</TableCell>
-                  <TableCell align="left">Node {edge[0]} → Node {edge[1]}</TableCell>
+                  <TableCell component="th" scope="row">{edge.id}</TableCell>
+                  <TableCell align="left">Node {edge.source} → Node {edge.target}</TableCell>
                   <TableCell align="center">
-                    <IconButton aria-label="delete" size="small" onClick={onDeleteRow(idx)}>
+                    <IconButton aria-label="delete" size="small" onClick={onDeleteRow(edge.id)}>
                       <DeleteIcon fontSize="inherit" />
                     </IconButton>
                   </TableCell>

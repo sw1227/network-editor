@@ -31,6 +31,7 @@ const options: MapboxOptions = {
 
 const initialState: EditorState = {
   currentNodeIdx: 0,
+  currentEdgeIdx: 0,
   nodes: [],
   edges: []
 }
@@ -88,6 +89,15 @@ const Map: NextPage = () => {
       })
       map.on('mouseleave', 'nodes', () => {
         dispatch({ type: 'mouseleave' })
+      })
+      map.on('mousemove', 'edges', e => {
+        const hoverEdgeId = e.features?.[0].id
+        if (hoverEdgeId !== undefined) {
+          dispatch({ type: 'hoverEdge', payload: hoverEdgeId as number })
+        }
+      })
+      map.on('mouseleave', 'edges', () => {
+        dispatch({ type: 'mouseleaveEdge' })
       })
       map.on('mousemove', e => {
         dispatch({ type: 'mousemove', payload: e.lngLat })
@@ -167,9 +177,10 @@ const Map: NextPage = () => {
           <Divider />
           <EdgeTable
             edges={state.edges}
-            onEnterRow={(edgeIdx: number) => () => { /* TODO: hover edge */ }}
-            onLeaveRow={() => { }}
-            onDeleteRow={(edgeIdx: number) => () => { dispatch({ type: 'removeEdgeByIndex', payload: edgeIdx }) }}
+            hoverEdgeId={state.hoverEdgeId}
+            onEnterRow={(edgeId: number) => () => { dispatch({ type: 'hoverEdge', payload: edgeId }) }}
+            onLeaveRow={() => { dispatch({ type: 'mouseleaveEdge' }) }}
+            onDeleteRow={(edgeId: number) => () => { dispatch({ type: 'removeEdgeById', payload: edgeId }) }}
           />
           <Divider />
         </List>

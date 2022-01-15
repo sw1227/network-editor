@@ -21,8 +21,8 @@ const createNodeLinkData = (nodes: Node[], edges: Edge[]) => {
       lat: node.lngLat.lat,
     })),
     links: edges.map(edge => ({
-      source: edge[0],
-      target: edge[1],
+      source: edge.source,
+      target: edge.target,
     }))
   }
 }
@@ -42,8 +42,8 @@ const createGeoJsonData = (nodes: Node[], edges: Edges[]): FeatureCollection => 
         },
       } as Feature)),
       ...edges.map(edge => {
-        const p1 = nodes.find(n => n.id === edge[0])
-        const p2 = nodes.find(n => n.id === edge[1])
+        const p1 = nodes.find(n => n.id === edge.source)
+        const p2 = nodes.find(n => n.id === edge.target)
         return {
           type: 'Feature',
           geometry: {

@@ -27,7 +27,12 @@ export const edgesLayer: mapboxgl.LineLayer = {
   paint: {
     'line-color': '#f08',
     'line-opacity': 0.4,
-    'line-width': 3,
+    'line-width': [
+      'case',
+      ['boolean', ['feature-state', 'hover'], false],
+      6,
+      3
+    ],
   }
 }
 
