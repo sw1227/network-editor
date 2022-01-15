@@ -18,16 +18,8 @@ import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
 import NodeTable from '../components/nodetable'
 import EdgeTable from '../components/edgetable'
 import ExportModal from '../components/exportmodal'
+import BaseMapSelector, { MAP_STYLE } from '../components/basemap'
 import styles from '../styles/Map.module.css'
-
-const options: MapboxOptions = {
-  accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
-  container: 'mapbox',
-  style: 'mapbox://styles/mapbox/light-v10',
-  localIdeographFontFamily: 'sans-serif',
-  center: [139.7, 35.7],
-  zoom: 12
-}
 
 const initialState: EditorState = {
   currentNodeIdx: 0,
@@ -40,11 +32,20 @@ const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
   const [modalOpen, setModalOpen] = useState(false)
+  const [mapStyle, setMapStyle] = useState<keyof typeof MAP_STYLE>('Default')
 
   // Create map instance on initial render
   useEffect(() => {
+    const options: MapboxOptions = {
+      accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+      container: 'mapbox',
+      style: MAP_STYLE[mapStyle],
+      localIdeographFontFamily: 'sans-serif',
+      center: [139.7, 35.7],
+      zoom: 12
+    }
     dispatch({ type: 'initMap', payload: options })
-  }, [])
+  }, [mapStyle])
 
   // Add source and event listener to the map
   useEffect(() => {
@@ -182,6 +183,8 @@ const Map: NextPage = () => {
             onLeaveRow={() => { dispatch({ type: 'mouseleaveEdge' }) }}
             onDeleteRow={(edgeId: number) => () => { dispatch({ type: 'removeEdgeById', payload: edgeId }) }}
           />
+          <Divider />
+          <BaseMapSelector mapStyle={mapStyle} onSelect={style => setMapStyle(style)} />
           <Divider />
         </List>
       </SidePaper>
