@@ -14,6 +14,13 @@ export type EditorState = {
   editingEdge?: LngLatEdge,
 }
 
+export const initialState: EditorState = {
+  currentNodeIdx: 0,
+  currentEdgeIdx: 0,
+  nodes: [],
+  edges: []
+}
+
 type Action =
   | { type: 'initMap', payload: MapboxOptions }
   | { type: 'clickMap', payload: mapboxgl.LngLat }
@@ -26,6 +33,7 @@ type Action =
   | { type: 'removeEdgeById', payload: Edge['id'] }
   | { type: 'hoverEdge', payload: Edge['id'] }
   | { type: 'mouseleaveEdge' }
+  | { type: 'reset' }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -175,6 +183,11 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         return {
           ...state,
           hoverEdgeId: undefined
+        }
+    case 'reset':
+        return {
+          ...initialState,
+          map: state.map
         }
     default:
       return state

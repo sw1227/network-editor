@@ -14,26 +14,22 @@ import IconButton from '@mui/material/IconButton'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import Tooltip from '@mui/material/Tooltip'
 import CropFreeIcon from '@mui/icons-material/CropFree'
-import { reducer, EditorState } from '../lib/reducer'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import { reducer, initialState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
 import NodeTable from '../components/nodetable'
 import EdgeTable from '../components/edgetable'
 import ExportModal from '../components/exportmodal'
+import ResetModal from '../components/resetmodal'
 import BaseMapSelector, { MAP_STYLE } from '../components/basemap'
 import styles from '../styles/Map.module.css'
-
-const initialState: EditorState = {
-  currentNodeIdx: 0,
-  currentEdgeIdx: 0,
-  nodes: [],
-  edges: []
-}
 
 const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [resetModalOpen, setResetModalOpen] = useState(false)
   const [mapStyle, setMapStyle] = useState<keyof typeof MAP_STYLE>('Default_ja')
 
   // Create map instance on initial render
@@ -158,17 +154,22 @@ const Map: NextPage = () => {
       </Head>
       <div id="mapbox" className={styles.mapbox}></div>
       <ExportModal
-        open={modalOpen}
-        onCloseModal={() => setModalOpen(false)}
+        open={exportModalOpen}
+        onCloseModal={() => setExportModalOpen(false)}
         nodes={state.nodes}
         edges={state.edges}
+      />
+      <ResetModal
+        open={resetModalOpen}
+        onCloseModal={() => setResetModalOpen(false)}
+        onReset={() => { dispatch({ type: 'reset' }) }}
       />
       <SidePaper>
         <ListItem
           secondaryAction={
             <Stack direction="row" spacing={2}>
               <Tooltip title="Export">
-                <IconButton edge="end" onClick={() => setModalOpen(true)}>
+                <IconButton edge="end" onClick={() => setExportModalOpen(true)}>
                   <FileDownloadIcon />
                 </IconButton>
               </Tooltip>
@@ -176,6 +177,13 @@ const Map: NextPage = () => {
                 <span>
                   <IconButton edge="end" onClick={fitMapToNodes} disabled={state.nodes.length < 3}>
                     <CropFreeIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title="Reset">
+                <span>
+                  <IconButton edge="end" onClick={() => setResetModalOpen(true)} disabled={state.nodes.length < 1}>
+                    <RefreshIcon />
                   </IconButton>
                 </span>
               </Tooltip>
