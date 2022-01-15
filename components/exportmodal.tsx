@@ -11,6 +11,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
 import FormLabel from '@mui/material/FormLabel'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import Tooltip from '@mui/material/Tooltip'
 import { Node, Edge } from '../lib/map'
 
 const createNodeLinkData = (nodes: Node[], edges: Edge[]) => {
@@ -108,8 +109,12 @@ const ExportModal = ({ open, onCloseModal, nodes, edges }: {
               value={value}
               onChange={handleChange}
             >
-              <FormControlLabel value="node-link" control={<Radio />} label="Node-link json" />
-              <FormControlLabel value="geojson" control={<Radio />} label="GeoJSON" />
+              <Tooltip title="https://networkx.org/documentation/stable/reference/readwrite/json_graph.html" placement="left">
+                <FormControlLabel value="node-link" control={<Radio />} label="Node-link json" />
+              </Tooltip>
+              <Tooltip title="FeatureCollection of nodes(Point) and edges(LineString)" placement="left">
+                <FormControlLabel value="geojson" control={<Radio />} label="GeoJSON" />
+              </Tooltip>
             </RadioGroup>
           </FormControl>
           <Button
