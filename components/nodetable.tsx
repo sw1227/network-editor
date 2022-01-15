@@ -27,18 +27,18 @@ const NodeTable = ({ nodes, hoverNodeId, onEnterRow, onLeaveRow, onDeleteRow }: 
   onLeaveRow: () => void,
   onDeleteRow: (node: Node['id']) => () => void,
 }) => {
-  const [modalOpen, setModalOpen] = useState(true)
+  const [open, setOpen] = useState(false)
 
   return (
     <>
-      <ListItemButton onClick={() => { setModalOpen(!modalOpen) }}>
+      <ListItemButton onClick={() => { setOpen(!open) }}>
         <ListItemIcon>
           <EditIcon />
         </ListItemIcon>
         < ListItemText primary="Nodes" />
-        {modalOpen ? <ExpandLess /> : <ExpandMore />}
+        {open ? <ExpandLess /> : <ExpandMore />}
       </ListItemButton>
-      <Collapse in={modalOpen} timeout="auto" unmountOnExit>
+      <Collapse in={open} timeout="auto" unmountOnExit>
         <TableContainer component={Paper} elevation={0}>
           <Table sx={{ minWidth: 20 }} size="small" aria-label="a dense table">
             <TableHead>
