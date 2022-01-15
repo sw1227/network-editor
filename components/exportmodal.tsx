@@ -71,18 +71,18 @@ const ExportModal = ({ open, onCloseModal, nodes, edges }: {
   nodes: Node[],
   edges: Edge[],
 }) => {
-  const [value, setValue] = useState('node-link')
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue((event.target as HTMLInputElement).value)
+  const [format, setFormat] = useState('node-link')
+  const handleFormatChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormat((event.target as HTMLInputElement).value)
   }
 
-  const handleExport = async () => {
-    const data = value === 'node-link'
+  const handleExport = () => {
+    const data = format === 'node-link'
       ? createNodeLinkData(nodes, edges)
       : createGeoJsonData(nodes, edges)
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
     const link = document.createElement('a')
-    link.href = await URL.createObjectURL(blob)
+    link.href = URL.createObjectURL(blob)
     link.download = 'export.json'
     document.body.appendChild(link)
     link.click()
@@ -106,8 +106,8 @@ const ExportModal = ({ open, onCloseModal, nodes, edges }: {
             <RadioGroup
               aria-label="gender"
               name="controlled-radio-buttons-group"
-              value={value}
-              onChange={handleChange}
+              value={format}
+              onChange={handleFormatChange}
             >
               <Tooltip title="https://networkx.org/documentation/stable/reference/readwrite/json_graph.html" placement="left">
                 <FormControlLabel value="node-link" control={<Radio />} label="Node-link json" />
