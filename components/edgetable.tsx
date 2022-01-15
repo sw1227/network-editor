@@ -9,7 +9,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import DeleteIcon from '@mui/icons-material/Delete'
 import IconButton from '@mui/material/IconButton'
-import EditIcon from '@mui/icons-material/Edit'
+import PolylineIcon from '@mui/icons-material/Polyline'
 import Collapse from '@mui/material/Collapse'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
@@ -31,7 +31,7 @@ const EdgeTable = ({ edges, hoverEdgeId, onEnterRow, onLeaveRow, onDeleteRow }: 
     <>
       <ListItemButton onClick={() => { setOpen(!open) }}>
         <ListItemIcon>
-          <EditIcon />
+          <PolylineIcon />
         </ListItemIcon>
         < ListItemText primary="Edges" />
         {open ? <ExpandLess /> : <ExpandMore />}

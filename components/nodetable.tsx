@@ -9,7 +9,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import DeleteIcon from '@mui/icons-material/Delete'
 import IconButton from '@mui/material/IconButton'
-import EditIcon from '@mui/icons-material/Edit'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
 import Collapse from '@mui/material/Collapse'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
@@ -33,7 +33,7 @@ const NodeTable = ({ nodes, hoverNodeId, onEnterRow, onLeaveRow, onDeleteRow }: 
     <>
       <ListItemButton onClick={() => { setOpen(!open) }}>
         <ListItemIcon>
-          <EditIcon />
+          <LocationOnIcon />
         </ListItemIcon>
         < ListItemText primary="Nodes" />
         {open ? <ExpandLess /> : <ExpandMore />}
