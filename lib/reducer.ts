@@ -192,17 +192,22 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         }
     case 'importNodeLinkJson':
       const { nodes, links } = action.payload
+      const importedNodes: Node[] = nodes.map(n => ({
+        id: n.id,
+        lngLat: new mapboxgl.LngLat(n.lng, n.lat),
+      }))
+      // Assuming all the links have id or all the links do not have id
+      const importedEdges: Edge[] = links.map((l, i) => ({
+        id: l.id || i,
+        source: l.source,
+        target: l.target
+      }))
       return {
         ...state,
-        nodes: nodes.map(n => ({
-          id: n.id,
-          lngLat: new mapboxgl.LngLat(n.lng, n.lat),
-        })),
-        edges: links.map((l, i) => ({
-          id: l.id || i,
-          source: l.source,
-          target: l.target
-        }))
+        nodes: importedNodes,
+        edges: importedEdges,
+        currentNodeIdx: Math.max(...importedNodes.map(n => n.id)) + 1,
+        currentEdgeIdx: Math.max(...importedEdges.map(n => n.id)) + 1,
       }
     default:
       return state
