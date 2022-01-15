@@ -14,6 +14,29 @@ export type Edge = {
 
 export type LngLatEdge = [mapboxgl.LngLat, mapboxgl.LngLat]
 
+export interface NodeLinkJson {
+  nodes: {
+      id: number;
+      lng: number;
+      lat: number;
+  }[];
+  links: {
+      id?: number;
+      source: number;
+      target: number;
+  }[];
+}
+
+export const isNodeLinkJson = (object: any): object is NodeLinkJson => {
+  const hasNodes = object.nodes?.every((node: any) => (
+    'id' in node && 'lng' in node && 'lat' in node
+  ))
+  const hasLinks = object.links?.every((link: any) => (
+    'source' in link && 'target' in link
+  ))
+  return hasNodes && hasLinks
+}
+
 export const nodesToGeoJson = (nodes: Node[]): FeatureCollection => {
   return {
     type: 'FeatureCollection',

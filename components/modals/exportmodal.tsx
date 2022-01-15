@@ -10,10 +10,10 @@ import FormControl from '@mui/material/FormControl'
 import FormLabel from '@mui/material/FormLabel'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import Tooltip from '@mui/material/Tooltip'
-import { Node, Edge } from '../../lib/map'
+import { Node, Edge, NodeLinkJson } from '../../lib/map'
 import { StyledModal, Backdrop, boxStyle } from './common'
 
-const createNodeLinkData = (nodes: Node[], edges: Edge[]) => {
+const createNodeLinkData = (nodes: Node[], edges: Edge[]): NodeLinkJson => {
   return {
     nodes: nodes.map(node => ({
       id: node.id,
