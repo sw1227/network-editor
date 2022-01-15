@@ -15,19 +15,22 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import Tooltip from '@mui/material/Tooltip'
 import CropFreeIcon from '@mui/icons-material/CropFree'
 import RefreshIcon from '@mui/icons-material/Refresh'
+import UploadFileIcon from '@mui/icons-material/UploadFile'
 import { reducer, initialState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
 import NodeTable from '../components/nodetable'
 import EdgeTable from '../components/edgetable'
-import ExportModal from '../components/exportmodal'
-import ResetModal from '../components/resetmodal'
+import ImportModal from '../components/modals/importmodal'
+import ExportModal from '../components/modals/exportmodal'
+import ResetModal from '../components/modals/resetmodal'
 import BaseMapSelector, { MAP_STYLE } from '../components/basemap'
 import styles from '../styles/Map.module.css'
 
 const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [importModalOpen, setImportModalOpen] = useState(false)
   const [exportModalOpen, setExportModalOpen] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [mapStyle, setMapStyle] = useState<keyof typeof MAP_STYLE>('Default_ja')
@@ -153,6 +156,15 @@ const Map: NextPage = () => {
         <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css' rel='stylesheet' />
       </Head>
       <div id="mapbox" className={styles.mapbox}></div>
+      <ImportModal
+        open={importModalOpen}
+        onCloseModal={() => setImportModalOpen(false)}
+        onImportNodeLinkJson={data => {
+          dispatch({ type: 'reset' })
+          dispatch({ type: 'importNodeLinkJson', payload: data })
+          setImportModalOpen(false)
+        }}
+      />
       <ExportModal
         open={exportModalOpen}
         onCloseModal={() => setExportModalOpen(false)}
@@ -167,7 +179,12 @@ const Map: NextPage = () => {
       <SidePaper>
         <ListItem
           secondaryAction={
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={1}>
+              <Tooltip title="Import">
+                <IconButton edge="end" onClick={() => setImportModalOpen(true)}>
+                  <UploadFileIcon />
+                </IconButton>
+              </Tooltip>
               <Tooltip title="Export">
                 <IconButton edge="end" onClick={() => setExportModalOpen(true)}>
                   <FileDownloadIcon />

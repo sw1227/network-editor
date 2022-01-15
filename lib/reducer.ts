@@ -1,6 +1,6 @@
 import { Reducer } from 'react'
 import mapboxgl, { MapboxOptions } from 'mapbox-gl'
-import { Node, Edge, LngLatEdge } from './map'
+import { Node, Edge, LngLatEdge, NodeLinkJson } from './map'
 
 export type EditorState = {
   map?: mapboxgl.Map,
@@ -34,6 +34,7 @@ type Action =
   | { type: 'hoverEdge', payload: Edge['id'] }
   | { type: 'mouseleaveEdge' }
   | { type: 'reset' }
+  | { type: 'importNodeLinkJson', payload: NodeLinkJson }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -189,6 +190,20 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
           ...initialState,
           map: state.map
         }
+    case 'importNodeLinkJson':
+      const { nodes, links } = action.payload
+      return {
+        ...state,
+        nodes: nodes.map(n => ({
+          id: n.id,
+          lngLat: new mapboxgl.LngLat(n.lng, n.lat),
+        })),
+        edges: links.map((l, i) => ({
+          id: l.id || i,
+          source: l.source,
+          target: l.target
+        }))
+      }
     default:
       return state
   }
