@@ -34,7 +34,7 @@ const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
   const [modalOpen, setModalOpen] = useState(false)
-  const [mapStyle, setMapStyle] = useState<keyof typeof MAP_STYLE>('Default')
+  const [mapStyle, setMapStyle] = useState<keyof typeof MAP_STYLE>('Default_ja')
 
   // Create map instance on initial render
   useEffect(() => {
@@ -173,9 +173,11 @@ const Map: NextPage = () => {
                 </IconButton>
               </Tooltip>
               <Tooltip title="Fit to nodes">
-                <IconButton edge="end" onClick={fitMapToNodes} disabled={state.nodes.length < 3}>
-                  <CropFreeIcon />
-                </IconButton>
+                <span>
+                  <IconButton edge="end" onClick={fitMapToNodes} disabled={state.nodes.length < 3}>
+                    <CropFreeIcon />
+                  </IconButton>
+                </span>
               </Tooltip>
             </Stack>
           }
