@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import mapboxgl from 'mapbox-gl'
+import List from '@mui/material/List'
+import ListSubheader from '@mui/material/ListSubheader'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
@@ -65,8 +67,9 @@ const OverlaySetting = ({
         {open ? <ExpandLess /> : <ExpandMore />}
       </ListItemButton>
       <Collapse in={open} timeout="auto" unmountOnExit>
-        <InputArea>
-          <div>Actual size of image [meter]</div>
+        <InputList
+          subheader={<ListSubheader>Actual size of image [meter]</ListSubheader>}
+        >
           <TextField
             id="width-input"
             label="Width"
@@ -90,8 +93,10 @@ const OverlaySetting = ({
             value={heightStr}
             onChange={e => setHeightStr(e.target.value)}
           />
-
-          <div>Rotation</div>
+        </InputList>
+        <InputList
+          subheader={<ListSubheader>Rotation</ListSubheader>}
+        >
           <TextField
             id="rotation-input"
             label="Rotation"
@@ -103,8 +108,10 @@ const OverlaySetting = ({
             value={rotationStr}
             onChange={e => setRotationStr(e.target.value)}
           />
-
-          <div>Location</div>
+        </InputList>
+        <InputList
+          subheader={<ListSubheader>Location</ListSubheader>}
+        >
           <TextField
             id="lng-input"
             label="Longitude"
@@ -128,8 +135,7 @@ const OverlaySetting = ({
             value={latStr}
             onChange={e => setLatStr(e.target.value)}
           />
-
-        </InputArea>
+        </InputList>
       </Collapse>
     </>
   )
@@ -137,6 +143,6 @@ const OverlaySetting = ({
 
 export default OverlaySetting
 
-const InputArea = styled.div`
+const InputList = styled(List)`
   padding: 16px;
 `
