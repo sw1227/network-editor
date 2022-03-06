@@ -15,6 +15,7 @@ import Tooltip from '@mui/material/Tooltip'
 import CropFreeIcon from '@mui/icons-material/CropFree'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { reducer, initialState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
@@ -22,6 +23,7 @@ import NodeTable from '../components/nodetable'
 import EdgeTable from '../components/edgetable'
 import ImportModal from '../components/modals/importmodal'
 import ExportModal from '../components/modals/exportmodal'
+import AddImageModal from '../components/modals/imagemodal'
 import ResetModal from '../components/modals/resetmodal'
 import BaseMapSelector, { MAP_STYLE } from '../components/basemap'
 import styles from '../styles/Map.module.css'
@@ -31,6 +33,7 @@ const Map: NextPage = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [addImageModalOpen, setAddImageModalOpen] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [mapStyle, setMapStyle] = useState<keyof typeof MAP_STYLE>('Default_ja')
 
@@ -148,6 +151,28 @@ const Map: NextPage = () => {
     ])
   }
 
+  const addImageLayer = (imgUrl: string) => {
+    state.map?.addSource('bg', {
+      type: 'image',
+      url: imgUrl,
+      coordinates: [ // TODO: temp
+        [139.65, 35.75],
+        [139.75, 35.75],
+        [139.75, 35.65],
+        [139.65, 35.65],
+      ]
+    })
+    state.map?.addLayer({
+      id: 'bg',
+      'type': 'raster',
+      'source': 'bg',
+      'paint': {
+        'raster-fade-duration': 0,
+        'raster-opacity': 0.4
+      }
+    });
+  }
+
   return (
     <>
       <Head>
@@ -170,6 +195,11 @@ const Map: NextPage = () => {
         nodes={state.nodes}
         edges={state.edges}
       />
+      <AddImageModal
+        open={addImageModalOpen}
+        onCloseModal={() => setAddImageModalOpen(false)}
+        onImportImage={addImageLayer}
+      />
       <ResetModal
         open={resetModalOpen}
         onCloseModal={() => setResetModalOpen(false)}
@@ -187,6 +217,11 @@ const Map: NextPage = () => {
               <Tooltip title="Export">
                 <IconButton edge="end" onClick={() => setExportModalOpen(true)}>
                   <FileDownloadIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Add raster image overlay">
+                <IconButton edge="end" onClick={() => setAddImageModalOpen(true)}>
+                  <AddPhotoAlternateIcon />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Fit to nodes">
