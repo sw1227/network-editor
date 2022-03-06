@@ -9,7 +9,7 @@ import { StyledModal, Backdrop, boxStyle, NoMarginDiv } from './common'
 const AddImageModal = ({ open, onCloseModal, onImportImage }: {
   open: boolean,
   onCloseModal: () => void,
-  onImportImage: (imgUrl: string) => void,
+  onImportImage: (image: HTMLImageElement) => void,
 }) => {
   const [openSnack, setOpenSnack]= useState(false) // TODO: not used
   const [files, setFiles] = useState<FileList | null>(null)
@@ -25,7 +25,11 @@ const AddImageModal = ({ open, onCloseModal, onImportImage }: {
   const handleImport = () => {
     if (!files || files.length < 1) return
     // Only supports single file
-    onImportImage(URL.createObjectURL(files[0]))
+    const image = new Image();
+    image.src = URL.createObjectURL(files[0])
+    image.onload = () => {
+      onImportImage(image)
+    }
     handleClose()
   }
 

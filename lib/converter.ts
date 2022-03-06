@@ -12,11 +12,30 @@ export const rad2deg = (rad: Radian): Degree => {
   return 180 / Math.PI * rad
 }
 
+// Rotate coord by theta[deg] around [0, 0]
+export const rotate = (
+  theta: Degree,
+  coord: { x: number, y: number }
+) => {
+  const rad = deg2rad(theta)
+  const { x, y } = coord
+  return {
+    x: Math.cos(rad) * x - Math.sin(rad) * y,
+    y: Math.sin(rad) * x + Math.cos(rad) * y,
+  }
+}
+
 // 定数 (a, F: 世界測地系-測地基準系1980（GRS80）楕円体)
 const m0 = 0.9999
 const a = 6378137
 const F = 298.257222101
 const n = 1 / (2 * F - 1)
+
+// 平面直角座標系（平成十四年国土交通省告示第九号）
+// https://www.gsi.go.jp/LAW/heimencho.html
+export const ORIGINS: {[system: string]: LngLat} = {
+  IX: { lng: 139+50/60, lat: 36 }
+}
 
 
 export class PlaneRectangularConverter {

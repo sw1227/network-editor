@@ -19,6 +19,7 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { reducer, initialState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer, rasterImageLayer } from '../lib/layers'
+import { ORIGINS, PlaneRectangularConverter, rotate } from '../lib/converter'
 import NodeTable from '../components/nodetable'
 import EdgeTable from '../components/edgetable'
 import ImportModal from '../components/modals/importmodal'
@@ -45,8 +46,8 @@ const Map: NextPage = () => {
       container: 'mapbox',
       style: MAP_STYLE[mapStyle],
       localIdeographFontFamily: 'sans-serif',
-      center: [139.7, 35.7],
-      zoom: 12
+      center: [139.744, 35.72],
+      zoom: 16,
     }
     dispatch({ type: 'initMap', payload: options })
   }, [mapStyle])
@@ -145,16 +146,44 @@ const Map: NextPage = () => {
     if (state.map?.getLayer('raster-image')) {
       state.map.removeLayer('raster-image')
     }
-    if (!state.map || !state.imageUrl) return
+    if (state.map?.getSource('raster-image')) {
+      state.map.removeSource('raster-image')
+    }
+    if (!state.map || !state.imageUrl || !state.imageShape) return
+
+    const mapCenter = state.map.getCenter();
+    const prc = new PlaneRectangularConverter(ORIGINS.IX) // TODO: Tokyo
+    const { x: cx, y: cy } = prc.lngLatToXY(mapCenter)
+
+    // Actual shape [m] of image: initialize by image shape in px
+    const imgMeterShape = state.imageShape
+
+    // Plane Rectangular Coordinates (x, y) is left-handed
+    // x: North, y: East
+    // https://www.gsi.go.jp/LAW/heimencho.html#9
+    const theta = -37 // TODO: setting
+    const offsetMeter = {
+      nw: rotate(- theta, { x: + imgMeterShape.height / 2, y: - imgMeterShape.width / 2}),
+      ne: rotate(- theta, { x: + imgMeterShape.height / 2, y: + imgMeterShape.width / 2}),
+      se: rotate(- theta, { x: - imgMeterShape.height / 2, y: + imgMeterShape.width / 2}),
+      sw: rotate(- theta, { x: - imgMeterShape.height / 2, y: - imgMeterShape.width / 2}),
+    }
+
+    const vertices = {
+      nw: prc.XYToLngLat({ x: cx + offsetMeter.nw.x, y: cy + offsetMeter.nw.y}),
+      ne: prc.XYToLngLat({ x: cx + offsetMeter.ne.x, y: cy + offsetMeter.ne.y}),
+      se: prc.XYToLngLat({ x: cx + offsetMeter.se.x, y: cy + offsetMeter.se.y}),
+      sw: prc.XYToLngLat({ x: cx + offsetMeter.sw.x, y: cy + offsetMeter.sw.y}),
+    }
 
     state.map.addSource('raster-image', {
       type: 'image',
       url: state.imageUrl,
-      coordinates: [ // TODO: temp
-        [139.65, 35.75],
-        [139.75, 35.75],
-        [139.75, 35.65],
-        [139.65, 35.65],
+      coordinates: [
+        [vertices.nw.lng, vertices.nw.lat],
+        [vertices.ne.lng, vertices.ne.lat],
+        [vertices.se.lng, vertices.se.lat],
+        [vertices.sw.lng, vertices.sw.lat],
       ]
     })
     state.map?.addLayer(rasterImageLayer);
@@ -197,7 +226,7 @@ const Map: NextPage = () => {
       <AddImageModal
         open={addImageModalOpen}
         onCloseModal={() => setAddImageModalOpen(false)}
-        onImportImage={imgUrl => { dispatch({ type: 'setImageUrl', payload: imgUrl }) }}
+        onImportImage={image => { dispatch({ type: 'setImage', payload: image }) }}
       />
       <ResetModal
         open={resetModalOpen}
@@ -265,9 +294,12 @@ const Map: NextPage = () => {
           <Divider />
           <BaseMapSelector mapStyle={mapStyle} onSelect={style => setMapStyle(style)} />
           <Divider />
-          {/* TODO: conditional */}
-          <OverlaySetting />
-          <Divider />
+          {!state.imageUrl ? null :
+            <>
+              <OverlaySetting />
+              <Divider />
+            </>
+          }
         </List>
       </SidePaper>
     </>
