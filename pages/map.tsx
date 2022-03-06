@@ -149,24 +149,21 @@ const Map: NextPage = () => {
     if (state.map?.getSource('raster-image')) {
       state.map.removeSource('raster-image')
     }
-    if (!state.map || !state.imageUrl || !state.imageShape) return
+    if (!state.map || !state.imageUrl || !state.imageShape || !state.imageShapeMeter) return
 
     const mapCenter = state.map.getCenter();
     const prc = new PlaneRectangularConverter(ORIGINS.IX) // TODO: Tokyo
     const { x: cx, y: cy } = prc.lngLatToXY(mapCenter)
-
-    // Actual shape [m] of image: initialize by image shape in px
-    const imgMeterShape = state.imageShape
 
     // Plane Rectangular Coordinates (x, y) is left-handed
     // x: North, y: East
     // https://www.gsi.go.jp/LAW/heimencho.html#9
     const theta = -37 // TODO: setting
     const offsetMeter = {
-      nw: rotate(- theta, { x: + imgMeterShape.height / 2, y: - imgMeterShape.width / 2}),
-      ne: rotate(- theta, { x: + imgMeterShape.height / 2, y: + imgMeterShape.width / 2}),
-      se: rotate(- theta, { x: - imgMeterShape.height / 2, y: + imgMeterShape.width / 2}),
-      sw: rotate(- theta, { x: - imgMeterShape.height / 2, y: - imgMeterShape.width / 2}),
+      nw: rotate(- theta, { x: + state.imageShapeMeter.height / 2, y: - state.imageShapeMeter.width / 2}),
+      ne: rotate(- theta, { x: + state.imageShapeMeter.height / 2, y: + state.imageShapeMeter.width / 2}),
+      se: rotate(- theta, { x: - state.imageShapeMeter.height / 2, y: + state.imageShapeMeter.width / 2}),
+      sw: rotate(- theta, { x: - state.imageShapeMeter.height / 2, y: - state.imageShapeMeter.width / 2}),
     }
 
     const vertices = {
@@ -187,7 +184,7 @@ const Map: NextPage = () => {
       ]
     })
     state.map?.addLayer(rasterImageLayer);
-  }, [state.imageUrl])
+  }, [state.imageUrl, state.imageShapeMeter])
 
   const fitMapToNodes = () => {
     if (state.nodes.length < 3) return;
@@ -296,7 +293,12 @@ const Map: NextPage = () => {
           <Divider />
           {!state.imageUrl ? null :
             <>
-              <OverlaySetting />
+              <OverlaySetting
+                initWidth={state.imageShape?.width || 0}
+                initHeight={state.imageShape?.height || 0}
+                onChangeWidth={width => { dispatch({ type: 'updateImageShapeMeter', payload: { width } }) }}
+                onChangeHeight={height => { dispatch({ type: 'updateImageShapeMeter', payload: { height } }) }}
+              />
               <Divider />
             </>
           }

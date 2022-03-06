@@ -13,7 +13,8 @@ export type EditorState = {
   selectedNodeForEdge?: Node['id'],
   editingEdge?: LngLatEdge,
   imageUrl?: string,
-  imageShape?: { width: number, height: number }
+  imageShape?: { width: number, height: number }, // shape of uploaded image [px]
+  imageShapeMeter?: {width: number, height: number}, // shape of image on map [m]
 }
 
 export const initialState: EditorState = {
@@ -38,6 +39,7 @@ type Action =
   | { type: 'reset' }
   | { type: 'importNodeLinkJson', payload: NodeLinkJson }
   | { type: 'setImage', payload: HTMLImageElement }
+  | { type: 'updateImageShapeMeter', payload: { width?: number, height?: number } }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -220,6 +222,20 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         imageShape: {
           width: image.width,
           height: image.height
+        },
+        // Actual shape [m] of image: initialize by image shape in px
+        imageShapeMeter: {
+          width: image.width,
+          height: image.height
+        },
+      }
+    case 'updateImageShapeMeter':
+      const { width, height } = action.payload
+      return {
+        ...state,
+        imageShapeMeter: {
+          width: width ? width : state.imageShapeMeter?.width || 0,
+          height: height ? height : state.imageShapeMeter?.height || 0,
         },
       }
     default:
