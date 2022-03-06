@@ -12,6 +12,7 @@ export type EditorState = {
   hoverEdgeId?: Edge['id'],
   selectedNodeForEdge?: Node['id'],
   editingEdge?: LngLatEdge,
+  imageUrl?: string,
 }
 
 export const initialState: EditorState = {
@@ -35,6 +36,7 @@ type Action =
   | { type: 'mouseleaveEdge' }
   | { type: 'reset' }
   | { type: 'importNodeLinkJson', payload: NodeLinkJson }
+  | { type: 'setImageUrl', payload: string }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -208,6 +210,12 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         edges: importedEdges,
         currentNodeIdx: Math.max(...importedNodes.map(n => n.id)) + 1,
         currentEdgeIdx: Math.max(...importedEdges.map(n => n.id)) + 1,
+      }
+    case 'setImageUrl':
+      const url = action.payload
+      return {
+        ...state,
+        imageUrl: url
       }
     default:
       return state

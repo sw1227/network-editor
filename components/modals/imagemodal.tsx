@@ -26,6 +26,7 @@ const AddImageModal = ({ open, onCloseModal, onImportImage }: {
     if (!files || files.length < 1) return
     // Only supports single file
     onImportImage(URL.createObjectURL(files[0]))
+    handleClose()
   }
 
   return (

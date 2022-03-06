@@ -18,7 +18,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile'
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { reducer, initialState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
-import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
+import { editingEdgeLayer, nodesLayer, edgesLayer, rasterImageLayer } from '../lib/layers'
 import NodeTable from '../components/nodetable'
 import EdgeTable from '../components/edgetable'
 import ImportModal from '../components/modals/importmodal'
@@ -26,6 +26,7 @@ import ExportModal from '../components/modals/exportmodal'
 import AddImageModal from '../components/modals/imagemodal'
 import ResetModal from '../components/modals/resetmodal'
 import BaseMapSelector, { MAP_STYLE } from '../components/basemap'
+import OverlaySetting from '../components/overlay'
 import styles from '../styles/Map.module.css'
 
 const Map: NextPage = () => {
@@ -139,6 +140,26 @@ const Map: NextPage = () => {
     }
   }, [state.editingEdge])
 
+  // Add raster image layer according to the imageUrl state
+  useEffect(() => {
+    if (state.map?.getLayer('raster-image')) {
+      state.map.removeLayer('raster-image')
+    }
+    if (!state.map || !state.imageUrl) return
+
+    state.map.addSource('raster-image', {
+      type: 'image',
+      url: state.imageUrl,
+      coordinates: [ // TODO: temp
+        [139.65, 35.75],
+        [139.75, 35.75],
+        [139.75, 35.65],
+        [139.65, 35.65],
+      ]
+    })
+    state.map?.addLayer(rasterImageLayer);
+  }, [state.imageUrl])
+
   const fitMapToNodes = () => {
     if (state.nodes.length < 3) return;
     const minLng = Math.min(...state.nodes.map(n => n.lngLat.lng))
@@ -149,28 +170,6 @@ const Map: NextPage = () => {
       [minLng, minLat], // southwestern corner of the bounds
       [maxLng, maxLat] // northeastern corner of the bounds
     ])
-  }
-
-  const addImageLayer = (imgUrl: string) => {
-    state.map?.addSource('bg', {
-      type: 'image',
-      url: imgUrl,
-      coordinates: [ // TODO: temp
-        [139.65, 35.75],
-        [139.75, 35.75],
-        [139.75, 35.65],
-        [139.65, 35.65],
-      ]
-    })
-    state.map?.addLayer({
-      id: 'bg',
-      'type': 'raster',
-      'source': 'bg',
-      'paint': {
-        'raster-fade-duration': 0,
-        'raster-opacity': 0.4
-      }
-    });
   }
 
   return (
@@ -198,7 +197,7 @@ const Map: NextPage = () => {
       <AddImageModal
         open={addImageModalOpen}
         onCloseModal={() => setAddImageModalOpen(false)}
-        onImportImage={addImageLayer}
+        onImportImage={imgUrl => { dispatch({ type: 'setImageUrl', payload: imgUrl }) }}
       />
       <ResetModal
         open={resetModalOpen}
@@ -233,7 +232,7 @@ const Map: NextPage = () => {
               </Tooltip>
               <Tooltip title="Reset">
                 <span>
-                  <IconButton edge="end" onClick={() => setResetModalOpen(true)} disabled={state.nodes.length < 1}>
+                  <IconButton edge="end" onClick={() => setResetModalOpen(true)} disabled={state.nodes.length < 1 && !state.imageUrl}>
                     <RefreshIcon />
                   </IconButton>
                 </span>
@@ -265,6 +264,9 @@ const Map: NextPage = () => {
           />
           <Divider />
           <BaseMapSelector mapStyle={mapStyle} onSelect={style => setMapStyle(style)} />
+          <Divider />
+          {/* TODO: conditional */}
+          <OverlaySetting />
           <Divider />
         </List>
       </SidePaper>
