@@ -31,7 +31,8 @@ import OverlaySetting from '../components/overlay'
 import styles from '../styles/Map.module.css'
 
 const initOptions: MapboxOptions = {
-  accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+  // token: only for public usage (URL restricted)
+  accessToken: "pk.eyJ1Ijoic3cxMjI3IiwiYSI6ImNrbngyazRhcjBtY3Iyd3RnODhjbDhscWsifQ.6Uc-Lboqa0WhZbnnFJWFSA",
   container: 'mapbox',
   localIdeographFontFamily: 'sans-serif',
   center: new mapboxgl.LngLat(139.744, 35.72),
