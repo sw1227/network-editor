@@ -74,6 +74,7 @@ const Map: NextPage = () => {
       map.addLayer(nodesLayer)
       map.addLayer(edgesLayer)
       map.addLayer(editingEdgeLayer)
+      addRasterImageLayer()
 
       // Event listeners
       map.on('click', 'nodes', e => {
@@ -144,6 +145,10 @@ const Map: NextPage = () => {
 
   // Add raster image layer according to the imageUrl state
   useEffect(() => {
+    addRasterImageLayer()
+  }, [state.imageUrl, state.imageShapeMeter, state.imageRotationDeg, state.imageCenterLngLat])
+
+  const addRasterImageLayer = () => {
     if (state.map?.getLayer('raster-image')) {
       state.map.removeLayer('raster-image')
     }
@@ -194,7 +199,7 @@ const Map: NextPage = () => {
       [minLng, minLat], // southwestern corner of the bounds
       [maxLng, maxLat] // northeastern corner of the bounds
     ])
-  }, [state.imageUrl, state.imageShapeMeter, state.imageRotationDeg, state.imageCenterLngLat])
+  }
 
   const fitMapToNodes = () => {
     if (state.nodes.length < 3) return;
