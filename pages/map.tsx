@@ -158,7 +158,7 @@ const Map: NextPage = () => {
     // Plane Rectangular Coordinates (x, y) is left-handed
     // x: North, y: East
     // https://www.gsi.go.jp/LAW/heimencho.html#9
-    const theta = -37 // TODO: setting
+    const theta = state.imageRotationDeg || 0
     const offsetMeter = {
       nw: rotate(- theta, { x: + state.imageShapeMeter.height / 2, y: - state.imageShapeMeter.width / 2}),
       ne: rotate(- theta, { x: + state.imageShapeMeter.height / 2, y: + state.imageShapeMeter.width / 2}),
@@ -184,7 +184,17 @@ const Map: NextPage = () => {
       ]
     })
     state.map?.addLayer(rasterImageLayer);
-  }, [state.imageUrl, state.imageShapeMeter])
+
+    // Fit bounds to the image
+    const minLng = Math.min(...Object.values(vertices).map(v => v.lng))
+    const maxLng = Math.max(...Object.values(vertices).map(v => v.lng))
+    const minLat = Math.min(...Object.values(vertices).map(v => v.lat))
+    const maxLat = Math.max(...Object.values(vertices).map(v => v.lat))
+    state.map?.fitBounds([
+      [minLng, minLat], // southwestern corner of the bounds
+      [maxLng, maxLat] // northeastern corner of the bounds
+    ])
+  }, [state.imageUrl, state.imageShapeMeter, state.imageRotationDeg])
 
   const fitMapToNodes = () => {
     if (state.nodes.length < 3) return;
@@ -298,6 +308,7 @@ const Map: NextPage = () => {
                 initHeight={state.imageShape?.height || 0}
                 onChangeWidth={width => { dispatch({ type: 'updateImageShapeMeter', payload: { width } }) }}
                 onChangeHeight={height => { dispatch({ type: 'updateImageShapeMeter', payload: { height } }) }}
+                onChangeRotation={deg => { dispatch({ type: 'updateImageRotationDeg', payload: deg }) }}
               />
               <Divider />
             </>

@@ -10,15 +10,17 @@ import ExpandMore from '@mui/icons-material/ExpandMore'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 
-const OverlaySetting = ({ initWidth, initHeight, onChangeWidth, onChangeHeight }: {
+const OverlaySetting = ({ initWidth, initHeight, onChangeWidth, onChangeHeight, onChangeRotation }: {
   initWidth: number,
   initHeight: number,
   onChangeWidth: (width: number) => void,
   onChangeHeight: (height: number) => void,
+  onChangeRotation: (deg: number) => void,
 }) => {
   const [open, setOpen] = useState(false)
   const [widthStr, setWidthStr] = useState(String(initWidth))
   const [heightStr, setHeightStr] = useState(String(initHeight))
+  const [rotationStr, setRotationStr] = useState('0')
 
   useEffect(() => {
     const floatValue = parseFloat(widthStr)
@@ -29,6 +31,11 @@ const OverlaySetting = ({ initWidth, initHeight, onChangeWidth, onChangeHeight }
     const floatValue = parseFloat(heightStr)
     if (!isNaN(floatValue)) onChangeHeight(floatValue)
   }, [heightStr])
+
+  useEffect(() => {
+    const floatValue = parseFloat(rotationStr)
+    if (!isNaN(floatValue)) onChangeRotation(floatValue)
+  }, [rotationStr])
 
   return (
     <>
@@ -64,6 +71,19 @@ const OverlaySetting = ({ initWidth, initHeight, onChangeWidth, onChangeHeight }
             error={isNaN(parseFloat(heightStr))}
             value={heightStr}
             onChange={e => setHeightStr(e.target.value)}
+          />
+
+          <div>Rotation</div>
+          <TextField
+            id="rotation-input"
+            label="Rotation"
+            variant="standard"
+            InputProps={{
+              endAdornment: <InputAdornment position="end">[deg]</InputAdornment>
+            }}
+            error={isNaN(parseFloat(rotationStr))}
+            value={rotationStr}
+            onChange={e => setRotationStr(e.target.value)}
           />
         </InputArea>
       </Collapse>

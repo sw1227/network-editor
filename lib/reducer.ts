@@ -15,6 +15,7 @@ export type EditorState = {
   imageUrl?: string,
   imageShape?: { width: number, height: number }, // shape of uploaded image [px]
   imageShapeMeter?: {width: number, height: number}, // shape of image on map [m]
+  imageRotationDeg?: number,
 }
 
 export const initialState: EditorState = {
@@ -40,6 +41,7 @@ type Action =
   | { type: 'importNodeLinkJson', payload: NodeLinkJson }
   | { type: 'setImage', payload: HTMLImageElement }
   | { type: 'updateImageShapeMeter', payload: { width?: number, height?: number } }
+  | { type: 'updateImageRotationDeg', payload: number }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -237,6 +239,12 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
           width: width ? width : state.imageShapeMeter?.width || 0,
           height: height ? height : state.imageShapeMeter?.height || 0,
         },
+      }
+    case 'updateImageRotationDeg':
+      const deg = action.payload
+      return {
+        ...state,
+        imageRotationDeg: deg,
       }
     default:
       return state
