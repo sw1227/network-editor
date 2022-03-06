@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect, useReducer, useState } from 'react'
-import { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
+import mapboxgl, { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
 import styled from 'styled-components'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
@@ -30,6 +30,14 @@ import BaseMapSelector, { MAP_STYLE } from '../components/basemap'
 import OverlaySetting from '../components/overlay'
 import styles from '../styles/Map.module.css'
 
+const initOptions: MapboxOptions = {
+  accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+  container: 'mapbox',
+  localIdeographFontFamily: 'sans-serif',
+  center: new mapboxgl.LngLat(139.744, 35.72),
+  zoom: 16,
+} as const
+
 const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
@@ -41,15 +49,7 @@ const Map: NextPage = () => {
 
   // Create map instance on initial render
   useEffect(() => {
-    const options: MapboxOptions = {
-      accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
-      container: 'mapbox',
-      style: MAP_STYLE[mapStyle],
-      localIdeographFontFamily: 'sans-serif',
-      center: [139.744, 35.72],
-      zoom: 16,
-    }
-    dispatch({ type: 'initMap', payload: options })
+    dispatch({ type: 'initMap', payload: {...initOptions, style: MAP_STYLE[mapStyle]} })
   }, [mapStyle])
 
   // Add source and event listener to the map
@@ -149,11 +149,10 @@ const Map: NextPage = () => {
     if (state.map?.getSource('raster-image')) {
       state.map.removeSource('raster-image')
     }
-    if (!state.map || !state.imageUrl || !state.imageShape || !state.imageShapeMeter) return
+    if (!state.map || !state.imageUrl || !state.imageShape || !state.imageShapeMeter || !state.imageCenterLngLat) return
 
-    const mapCenter = state.map.getCenter();
     const prc = new PlaneRectangularConverter(ORIGINS.IX) // TODO: Tokyo
-    const { x: cx, y: cy } = prc.lngLatToXY(mapCenter)
+    const { x: cx, y: cy } = prc.lngLatToXY(state.imageCenterLngLat)
 
     // Plane Rectangular Coordinates (x, y) is left-handed
     // x: North, y: East
@@ -194,7 +193,7 @@ const Map: NextPage = () => {
       [minLng, minLat], // southwestern corner of the bounds
       [maxLng, maxLat] // northeastern corner of the bounds
     ])
-  }, [state.imageUrl, state.imageShapeMeter, state.imageRotationDeg])
+  }, [state.imageUrl, state.imageShapeMeter, state.imageRotationDeg, state.imageCenterLngLat])
 
   const fitMapToNodes = () => {
     if (state.nodes.length < 3) return;
@@ -306,9 +305,12 @@ const Map: NextPage = () => {
               <OverlaySetting
                 initWidth={state.imageShape?.width || 0}
                 initHeight={state.imageShape?.height || 0}
+                initCenter={state.imageCenterLngLat || initOptions.center as mapboxgl.LngLat}
                 onChangeWidth={width => { dispatch({ type: 'updateImageShapeMeter', payload: { width } }) }}
                 onChangeHeight={height => { dispatch({ type: 'updateImageShapeMeter', payload: { height } }) }}
                 onChangeRotation={deg => { dispatch({ type: 'updateImageRotationDeg', payload: deg }) }}
+                onChangeLng={deg => { dispatch({ type: 'updateImageCenter', payload: { lng: deg } }) }}
+                onChangeLat={deg => { dispatch({ type: 'updateImageCenter', payload: { lat: deg } }) }}
               />
               <Divider />
             </>

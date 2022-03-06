@@ -16,6 +16,7 @@ export type EditorState = {
   imageShape?: { width: number, height: number }, // shape of uploaded image [px]
   imageShapeMeter?: {width: number, height: number}, // shape of image on map [m]
   imageRotationDeg?: number,
+  imageCenterLngLat?: mapboxgl.LngLat,
 }
 
 export const initialState: EditorState = {
@@ -42,6 +43,7 @@ type Action =
   | { type: 'setImage', payload: HTMLImageElement }
   | { type: 'updateImageShapeMeter', payload: { width?: number, height?: number } }
   | { type: 'updateImageRotationDeg', payload: number }
+  | { type: 'updateImageCenter', payload: { lng?: number, lat?: number } }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -230,14 +232,16 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
           width: image.width,
           height: image.height
         },
+        // Image loaction: initialize by the current map center
+        imageCenterLngLat: state.map?.getCenter(),
       }
     case 'updateImageShapeMeter':
       const { width, height } = action.payload
       return {
         ...state,
         imageShapeMeter: {
-          width: width ? width : state.imageShapeMeter?.width || 0,
-          height: height ? height : state.imageShapeMeter?.height || 0,
+          width: width || state.imageShapeMeter?.width || 0,
+          height: height || state.imageShapeMeter?.height || 0,
         },
       }
     case 'updateImageRotationDeg':
@@ -245,6 +249,15 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
       return {
         ...state,
         imageRotationDeg: deg,
+      }
+    case 'updateImageCenter':
+      const { lng, lat } = action.payload
+      return {
+        ...state,
+        imageCenterLngLat: new mapboxgl.LngLat(
+          lng || state.imageCenterLngLat?.lng || 0,
+          lat || state.imageCenterLngLat?.lat || 0,
+        )
       }
     default:
       return state

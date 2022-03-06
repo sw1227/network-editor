@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
+import mapboxgl from 'mapbox-gl'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
@@ -10,17 +11,24 @@ import ExpandMore from '@mui/icons-material/ExpandMore'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 
-const OverlaySetting = ({ initWidth, initHeight, onChangeWidth, onChangeHeight, onChangeRotation }: {
+const OverlaySetting = ({
+  initWidth, initHeight, initCenter, onChangeWidth, onChangeHeight, onChangeRotation, onChangeLng, onChangeLat
+}: {
   initWidth: number,
   initHeight: number,
+  initCenter: mapboxgl.LngLat,
   onChangeWidth: (width: number) => void,
   onChangeHeight: (height: number) => void,
   onChangeRotation: (deg: number) => void,
+  onChangeLng: (deg: number) => void,
+  onChangeLat: (deg: number) => void,
 }) => {
   const [open, setOpen] = useState(false)
   const [widthStr, setWidthStr] = useState(String(initWidth))
   const [heightStr, setHeightStr] = useState(String(initHeight))
   const [rotationStr, setRotationStr] = useState('0')
+  const [lngStr, setLngStr] = useState(String(initCenter.lng))
+  const [latStr, setLatStr] = useState(String(initCenter.lat))
 
   useEffect(() => {
     const floatValue = parseFloat(widthStr)
@@ -36,6 +44,16 @@ const OverlaySetting = ({ initWidth, initHeight, onChangeWidth, onChangeHeight, 
     const floatValue = parseFloat(rotationStr)
     if (!isNaN(floatValue)) onChangeRotation(floatValue)
   }, [rotationStr])
+
+  useEffect(() => {
+    const floatValue = parseFloat(lngStr)
+    if (!isNaN(floatValue)) onChangeLng(floatValue)
+  }, [lngStr])
+
+  useEffect(() => {
+    const floatValue = parseFloat(latStr)
+    if (!isNaN(floatValue)) onChangeLat(floatValue)
+  }, [latStr])
 
   return (
     <>
@@ -85,6 +103,32 @@ const OverlaySetting = ({ initWidth, initHeight, onChangeWidth, onChangeHeight, 
             value={rotationStr}
             onChange={e => setRotationStr(e.target.value)}
           />
+
+          <div>Location</div>
+          <TextField
+            id="lng-input"
+            label="Longitude"
+            variant="standard"
+            InputProps={{
+              endAdornment: <InputAdornment position="end">[deg]</InputAdornment>
+            }}
+            error={isNaN(parseFloat(lngStr))}
+            value={lngStr}
+            onChange={e => setLngStr(e.target.value)}
+          />
+          <br />
+          <TextField
+            id="lng-input"
+            label="Latitude"
+            variant="standard"
+            InputProps={{
+              endAdornment: <InputAdornment position="end">[deg]</InputAdornment>
+            }}
+            error={isNaN(parseFloat(latStr))}
+            value={latStr}
+            onChange={e => setLatStr(e.target.value)}
+          />
+
         </InputArea>
       </Collapse>
     </>
