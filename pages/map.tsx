@@ -1,10 +1,12 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect, useReducer } from 'react'
-import { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
+import { MapboxOptions, GeoJSONSource, LngLat } from 'mapbox-gl'
 import { reducer, EditorState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
 import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
+import { XYToLngLat } from '../lib/geo'
+import { PlaneRectangularConverter } from '../lib/converter'
 import styles from '../styles/Map.module.css'
 
 const options: MapboxOptions = {
@@ -12,8 +14,8 @@ const options: MapboxOptions = {
   container: 'mapbox',
   style: 'mapbox://styles/mapbox/light-v10',
   localIdeographFontFamily: 'sans-serif',
-  center: [139.7, 35.7],
-  zoom: 12
+  center: [139.744, 35.72],
+  zoom: 16
 }
 
 const initialState: EditorState = {
@@ -21,6 +23,81 @@ const initialState: EditorState = {
   nodes: [],
   edges: []
 }
+
+const rotate = (theta: number, center: [number, number]) => (coord: [number, number]): [number, number] => {
+  const rad = theta * Math.PI / 180
+  const [x, y] = coord
+  const [x0, y0] = center
+  return [
+    x0 + Math.cos(rad) * (x - x0) - Math.sin(rad) * (y - y0),
+    y0 + Math.sin(rad) * (x - x0) + Math.cos(rad) * (y - y0)
+  ]
+}
+
+// const bgCenter = { lat: 35.7201, lng: 139.7442 }
+const bgCenter = { lat: 35.71968, lng: 139.74515 }
+const imgWidth = 898
+const imgHeight = 470
+const lngWidth = 0.012
+const latHeight = lngWidth * imgHeight / imgWidth
+const rot = rotate(37, [bgCenter.lng, bgCenter.lat])
+// const rectCoordinates = [
+//   rot([bgCenter.lng - lngWidth / 2, bgCenter.lat + latHeight / 2]),
+//   rot([bgCenter.lng + lngWidth / 2, bgCenter.lat + latHeight / 2]),
+//   rot([bgCenter.lng + lngWidth / 2, bgCenter.lat - latHeight / 2]),
+//   rot([bgCenter.lng - lngWidth / 2, bgCenter.lat - latHeight / 2]),
+// ]
+// const rectCoordinates = [
+//   [bgCenter.lng - lngWidth / 2, bgCenter.lat + latHeight / 2],
+//   [bgCenter.lng + lngWidth / 2, bgCenter.lat + latHeight / 2],
+//   [bgCenter.lng + lngWidth / 2, bgCenter.lat - latHeight / 2],
+//   [bgCenter.lng - lngWidth / 2, bgCenter.lat - latHeight / 2],
+// ]
+
+// const show = (deg: number) => {
+//   const d = Math.floor(deg)
+//   const m = Math.floor((deg % 1) * 60)
+//   const s = (((deg % 1) * 60) % 1) * 60
+//   return `${d}°${m}'${s}`
+// }
+// console.log('ll', ll, show(ll.lng), show(ll.lat))
+
+// TODO: 50mの正方形が横16, 縦7個ある
+// 頂点はcenterから横に50*8=400m, 縦に50*3.5=175m ずらす
+const prc = new PlaneRectangularConverter({ lng: 139+50/60, lat: 36 }) // Tokyo
+const { x: cx, y: cy } = prc.lngLatToXY(bgCenter)
+console.log('bg center xy', cx, cy)
+// 座標系のＸ軸は、座標系原点において子午線に一致する軸とし、真北に向う値を正とし、座標系のＹ軸は、座標系原点において座標系のＸ軸に直交する軸とし、真東に向う値を正とする
+// https://www.gsi.go.jp/LAW/heimencho.html#9
+// const nw = prc.XYToLngLat({ x: cx + 175, y: cy - 400 })
+// const ne = prc.XYToLngLat({ x: cx + 175, y: cy + 400 })
+// const se = prc.XYToLngLat({ x: cx - 175, y: cy + 400 })
+// const sw = prc.XYToLngLat({ x: cx - 175, y: cy - 400 })
+// TODO: なんか歪んでる。cxから上下左右に等間隔にしてから回転ではなく、cxから斜めにやってからlnglatに戻したら？？ FIXME:
+
+const width = 800 - 5 // [m]
+const height = 350 - 5 // [m]
+
+const nwOffset = rot([+ height / 2, - width / 2])
+const neOffset = rot([+ height / 2, + width / 2])
+const seOffset = rot([- height / 2, + width / 2])
+const swOffset = rot([- height / 2, - width / 2])
+const nw = prc.XYToLngLat({ x: cx + nwOffset[0], y: cy + nwOffset[1] })
+const ne = prc.XYToLngLat({ x: cx + neOffset[0], y: cy + neOffset[1] })
+const se = prc.XYToLngLat({ x: cx + seOffset[0], y: cy + seOffset[1] })
+const sw = prc.XYToLngLat({ x: cx + swOffset[0], y: cy + swOffset[1] })
+
+// const nw = prc.XYToLngLat({x: cx - 400, y: cy + 175})
+// const ne = prc.XYToLngLat({x: cx + 400, y: cy + 175})
+// const se = prc.XYToLngLat({x: cx + 400, y: cy - 175})
+// const sw = prc.XYToLngLat({x: cx - 400, y: cy - 175})
+const rectCoordinates = [
+  [nw.lng, nw.lat],
+  [ne.lng, ne.lat],
+  [se.lng, se.lat],
+  [sw.lng, sw.lat],
+]
+
 
 const Map: NextPage = () => {
   // States
@@ -49,9 +126,23 @@ const Map: NextPage = () => {
         type: 'geojson',
         data: lngLatEdgeToGeoJson() // empty
       })
+      map.addSource('bg', {
+        type: 'image',
+        url: '/bgmap2.png',
+        coordinates: rectCoordinates
+      })
       map.addLayer(nodesLayer)
       map.addLayer(edgesLayer)
       map.addLayer(editingEdgeLayer)
+      map.addLayer({
+        id: 'bg',
+        'type': 'raster',
+        'source': 'bg',
+        'paint': {
+          'raster-fade-duration': 0,
+          'raster-opacity': 0.4
+        }
+      });
 
       // Event listeners
       map.on('click', 'nodes', e => {
