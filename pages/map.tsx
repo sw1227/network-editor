@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect, useReducer, useState } from 'react'
-import { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
+import mapboxgl, { MapboxOptions, GeoJSONSource } from 'mapbox-gl'
 import styled from 'styled-components'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
@@ -15,36 +15,41 @@ import Tooltip from '@mui/material/Tooltip'
 import CropFreeIcon from '@mui/icons-material/CropFree'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { reducer, initialState } from '../lib/reducer'
 import { nodesToGeoJson, edgesToGeoJson, lngLatEdgeToGeoJson } from '../lib/map'
-import { editingEdgeLayer, nodesLayer, edgesLayer } from '../lib/layers'
+import { editingEdgeLayer, nodesLayer, edgesLayer, rasterImageLayer } from '../lib/layers'
+import { ORIGINS, PlaneRectangularConverter, rotate } from '../lib/converter'
 import NodeTable from '../components/nodetable'
 import EdgeTable from '../components/edgetable'
 import ImportModal from '../components/modals/importmodal'
 import ExportModal from '../components/modals/exportmodal'
+import AddImageModal from '../components/modals/imagemodal'
 import ResetModal from '../components/modals/resetmodal'
 import BaseMapSelector, { MAP_STYLE } from '../components/basemap'
+import OverlaySetting from '../components/overlay'
 import styles from '../styles/Map.module.css'
+
+const initOptions: MapboxOptions = {
+  accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+  container: 'mapbox',
+  localIdeographFontFamily: 'sans-serif',
+  center: new mapboxgl.LngLat(139.744, 35.72),
+  zoom: 16,
+} as const
 
 const Map: NextPage = () => {
   // States
   const [state, dispatch] = useReducer(reducer, initialState)
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [addImageModalOpen, setAddImageModalOpen] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [mapStyle, setMapStyle] = useState<keyof typeof MAP_STYLE>('Default_ja')
 
   // Create map instance on initial render
   useEffect(() => {
-    const options: MapboxOptions = {
-      accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
-      container: 'mapbox',
-      style: MAP_STYLE[mapStyle],
-      localIdeographFontFamily: 'sans-serif',
-      center: [139.7, 35.7],
-      zoom: 12
-    }
-    dispatch({ type: 'initMap', payload: options })
+    dispatch({ type: 'initMap', payload: {...initOptions, style: MAP_STYLE[mapStyle]} })
   }, [mapStyle])
 
   // Add source and event listener to the map
@@ -136,6 +141,60 @@ const Map: NextPage = () => {
     }
   }, [state.editingEdge])
 
+  // Add raster image layer according to the imageUrl state
+  useEffect(() => {
+    if (state.map?.getLayer('raster-image')) {
+      state.map.removeLayer('raster-image')
+    }
+    if (state.map?.getSource('raster-image')) {
+      state.map.removeSource('raster-image')
+    }
+    if (!state.map || !state.imageUrl || !state.imageShape || !state.imageShapeMeter || !state.imageCenterLngLat) return
+
+    const prc = new PlaneRectangularConverter(ORIGINS.IX) // TODO: Tokyo
+    const { x: cx, y: cy } = prc.lngLatToXY(state.imageCenterLngLat)
+
+    // Plane Rectangular Coordinates (x, y) is left-handed
+    // x: North, y: East
+    // https://www.gsi.go.jp/LAW/heimencho.html#9
+    const theta = state.imageRotationDeg || 0
+    const offsetMeter = {
+      nw: rotate(- theta, { x: + state.imageShapeMeter.height / 2, y: - state.imageShapeMeter.width / 2}),
+      ne: rotate(- theta, { x: + state.imageShapeMeter.height / 2, y: + state.imageShapeMeter.width / 2}),
+      se: rotate(- theta, { x: - state.imageShapeMeter.height / 2, y: + state.imageShapeMeter.width / 2}),
+      sw: rotate(- theta, { x: - state.imageShapeMeter.height / 2, y: - state.imageShapeMeter.width / 2}),
+    }
+
+    const vertices = {
+      nw: prc.XYToLngLat({ x: cx + offsetMeter.nw.x, y: cy + offsetMeter.nw.y}),
+      ne: prc.XYToLngLat({ x: cx + offsetMeter.ne.x, y: cy + offsetMeter.ne.y}),
+      se: prc.XYToLngLat({ x: cx + offsetMeter.se.x, y: cy + offsetMeter.se.y}),
+      sw: prc.XYToLngLat({ x: cx + offsetMeter.sw.x, y: cy + offsetMeter.sw.y}),
+    }
+
+    state.map.addSource('raster-image', {
+      type: 'image',
+      url: state.imageUrl,
+      coordinates: [
+        [vertices.nw.lng, vertices.nw.lat],
+        [vertices.ne.lng, vertices.ne.lat],
+        [vertices.se.lng, vertices.se.lat],
+        [vertices.sw.lng, vertices.sw.lat],
+      ]
+    })
+    state.map?.addLayer(rasterImageLayer);
+
+    // Fit bounds to the image
+    const minLng = Math.min(...Object.values(vertices).map(v => v.lng))
+    const maxLng = Math.max(...Object.values(vertices).map(v => v.lng))
+    const minLat = Math.min(...Object.values(vertices).map(v => v.lat))
+    const maxLat = Math.max(...Object.values(vertices).map(v => v.lat))
+    state.map?.fitBounds([
+      [minLng, minLat], // southwestern corner of the bounds
+      [maxLng, maxLat] // northeastern corner of the bounds
+    ])
+  }, [state.imageUrl, state.imageShapeMeter, state.imageRotationDeg, state.imageCenterLngLat])
+
   const fitMapToNodes = () => {
     if (state.nodes.length < 3) return;
     const minLng = Math.min(...state.nodes.map(n => n.lngLat.lng))
@@ -170,6 +229,11 @@ const Map: NextPage = () => {
         nodes={state.nodes}
         edges={state.edges}
       />
+      <AddImageModal
+        open={addImageModalOpen}
+        onCloseModal={() => setAddImageModalOpen(false)}
+        onImportImage={image => { dispatch({ type: 'setImage', payload: image }) }}
+      />
       <ResetModal
         open={resetModalOpen}
         onCloseModal={() => setResetModalOpen(false)}
@@ -189,6 +253,11 @@ const Map: NextPage = () => {
                   <FileDownloadIcon />
                 </IconButton>
               </Tooltip>
+              <Tooltip title="Add raster image overlay">
+                <IconButton edge="end" onClick={() => setAddImageModalOpen(true)}>
+                  <AddPhotoAlternateIcon />
+                </IconButton>
+              </Tooltip>
               <Tooltip title="Fit to nodes">
                 <span>
                   <IconButton edge="end" onClick={fitMapToNodes} disabled={state.nodes.length < 3}>
@@ -198,7 +267,7 @@ const Map: NextPage = () => {
               </Tooltip>
               <Tooltip title="Reset">
                 <span>
-                  <IconButton edge="end" onClick={() => setResetModalOpen(true)} disabled={state.nodes.length < 1}>
+                  <IconButton edge="end" onClick={() => setResetModalOpen(true)} disabled={state.nodes.length < 1 && !state.imageUrl}>
                     <RefreshIcon />
                   </IconButton>
                 </span>
@@ -231,6 +300,21 @@ const Map: NextPage = () => {
           <Divider />
           <BaseMapSelector mapStyle={mapStyle} onSelect={style => setMapStyle(style)} />
           <Divider />
+          {!state.imageUrl ? null :
+            <>
+              <OverlaySetting
+                initWidth={state.imageShape?.width || 0}
+                initHeight={state.imageShape?.height || 0}
+                initCenter={state.imageCenterLngLat || initOptions.center as mapboxgl.LngLat}
+                onChangeWidth={width => { dispatch({ type: 'updateImageShapeMeter', payload: { width } }) }}
+                onChangeHeight={height => { dispatch({ type: 'updateImageShapeMeter', payload: { height } }) }}
+                onChangeRotation={deg => { dispatch({ type: 'updateImageRotationDeg', payload: deg }) }}
+                onChangeLng={deg => { dispatch({ type: 'updateImageCenter', payload: { lng: deg } }) }}
+                onChangeLat={deg => { dispatch({ type: 'updateImageCenter', payload: { lat: deg } }) }}
+              />
+              <Divider />
+            </>
+          }
         </List>
       </SidePaper>
     </>
