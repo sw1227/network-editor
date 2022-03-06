@@ -12,18 +12,22 @@ import ExpandLess from '@mui/icons-material/ExpandLess'
 import ExpandMore from '@mui/icons-material/ExpandMore'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
+import Slider from '@mui/material/Slider'
 
 const OverlaySetting = ({
-  initWidth, initHeight, initCenter, onChangeWidth, onChangeHeight, onChangeRotation, onChangeLng, onChangeLat
+  initWidth, initHeight, initCenter, opacity,
+  onChangeWidth, onChangeHeight, onChangeRotation, onChangeLng, onChangeLat, onChangeOpacity,
 }: {
   initWidth: number,
   initHeight: number,
   initCenter: mapboxgl.LngLat,
+  opacity: number,
   onChangeWidth: (width: number) => void,
   onChangeHeight: (height: number) => void,
   onChangeRotation: (deg: number) => void,
   onChangeLng: (deg: number) => void,
   onChangeLat: (deg: number) => void,
+  onChangeOpacity: (opacity: number) => void,
 }) => {
   const [open, setOpen] = useState(false)
   const [widthStr, setWidthStr] = useState(String(initWidth))
@@ -136,6 +140,21 @@ const OverlaySetting = ({
             onChange={e => setLatStr(e.target.value)}
           />
         </InputList>
+
+        <InputList
+          subheader={<ListSubheader>Opacity</ListSubheader>}
+        >
+          <OpacitySlider
+            value={opacity}
+            onChange={(_, value) => onChangeOpacity(value as number)}
+            min={0}
+            max={1}
+            step={0.1}
+            size="small"
+            aria-label="Opacity"
+            valueLabelDisplay="auto"
+          />
+        </InputList>
       </Collapse>
     </>
   )
@@ -144,5 +163,9 @@ const OverlaySetting = ({
 export default OverlaySetting
 
 const InputList = styled(List)`
-  padding: 16px;
+  padding: 24px;
+`
+
+const OpacitySlider = styled(Slider)`
+  margin-top: 28px;
 `

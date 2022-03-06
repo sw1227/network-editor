@@ -146,7 +146,7 @@ const Map: NextPage = () => {
   // Add raster image layer according to the imageUrl state
   useEffect(() => {
     addRasterImageLayer()
-  }, [state.imageUrl, state.imageShapeMeter, state.imageRotationDeg, state.imageCenterLngLat])
+  }, [state.imageUrl, state.imageShapeMeter, state.imageRotationDeg, state.imageCenterLngLat, state.imageOpacity])
 
   const addRasterImageLayer = () => {
     if (state.map?.getLayer('raster-image')) {
@@ -188,7 +188,7 @@ const Map: NextPage = () => {
         [vertices.sw.lng, vertices.sw.lat],
       ]
     })
-    state.map?.addLayer(rasterImageLayer);
+    state.map?.addLayer(rasterImageLayer((state.imageOpacity == null) ? 0.5 : state.imageOpacity));
 
     // Fit bounds to the image
     const minLng = Math.min(...Object.values(vertices).map(v => v.lng))
@@ -312,11 +312,13 @@ const Map: NextPage = () => {
                 initWidth={state.imageShape?.width || 0}
                 initHeight={state.imageShape?.height || 0}
                 initCenter={state.imageCenterLngLat || initOptions.center as mapboxgl.LngLat}
+                opacity={(state.imageOpacity == null) ? 0.5 : state.imageOpacity}
                 onChangeWidth={width => { dispatch({ type: 'updateImageShapeMeter', payload: { width } }) }}
                 onChangeHeight={height => { dispatch({ type: 'updateImageShapeMeter', payload: { height } }) }}
                 onChangeRotation={deg => { dispatch({ type: 'updateImageRotationDeg', payload: deg }) }}
                 onChangeLng={deg => { dispatch({ type: 'updateImageCenter', payload: { lng: deg } }) }}
                 onChangeLat={deg => { dispatch({ type: 'updateImageCenter', payload: { lat: deg } }) }}
+                onChangeOpacity={opacity => { dispatch({ type: 'updateImageOpacity', payload: opacity }) }}
               />
               <Divider />
             </>

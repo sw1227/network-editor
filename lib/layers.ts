@@ -49,12 +49,12 @@ export const editingEdgeLayer: mapboxgl.LineLayer = {
   }
 }
 
-export const rasterImageLayer: mapboxgl.RasterLayer = {
+export const rasterImageLayer: (opacity: number) => mapboxgl.RasterLayer = opacity => ({
   id: 'raster-image',
   type: 'raster',
   source: 'raster-image',
   paint: {
     'raster-fade-duration': 0,
-    'raster-opacity': 0.4
+    'raster-opacity': opacity,
   }
-}
+})

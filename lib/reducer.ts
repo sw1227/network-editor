@@ -17,6 +17,7 @@ export type EditorState = {
   imageShapeMeter?: {width: number, height: number}, // shape of image on map [m]
   imageRotationDeg?: number,
   imageCenterLngLat?: mapboxgl.LngLat,
+  imageOpacity?: number,
 }
 
 export const initialState: EditorState = {
@@ -44,6 +45,7 @@ type Action =
   | { type: 'updateImageShapeMeter', payload: { width?: number, height?: number } }
   | { type: 'updateImageRotationDeg', payload: number }
   | { type: 'updateImageCenter', payload: { lng?: number, lat?: number } }
+  | { type: 'updateImageOpacity', payload: number }
 
 export const reducer: Reducer<EditorState, Action> = (state, action) => {
   switch(action.type) {
@@ -258,6 +260,12 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
           lng || state.imageCenterLngLat?.lng || 0,
           lat || state.imageCenterLngLat?.lat || 0,
         )
+      }
+    case 'updateImageOpacity':
+      const opacity = action.payload
+      return {
+        ...state,
+        imageOpacity: opacity,
       }
     default:
       return state
