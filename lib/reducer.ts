@@ -67,18 +67,20 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         return {
           ...state,
           nodes: [...state.nodes, newNode],
-          currentNodeIdx: state.currentNodeIdx + 1,
-          currentEdgeIdx: state.currentEdgeIdx + 1,
           edges: [...state.edges, newEdge],
-          selectedNodeForEdge: undefined,
+          currentNodeIdx: newNode.id + 1,
+          currentEdgeIdx: newEdge.id + 1,
+          selectedNodeForEdge: newNode.id,
           editingEdge: undefined
         }
       } else {
         // Add Node
+        const newNode = { lngLat: action.payload, id: state.currentNodeIdx }
         return {
           ...state,
-          nodes: [...state.nodes, { lngLat: action.payload, id: state.currentNodeIdx }],
-          currentNodeIdx: state.currentNodeIdx + 1
+          nodes: [...state.nodes, newNode],
+          currentNodeIdx: newNode.id + 1,
+          selectedNodeForEdge: newNode.id,
         }
       }
     case 'hover':
@@ -124,7 +126,7 @@ export const reducer: Reducer<EditorState, Action> = (state, action) => {
         if (newEdge.source !== newEdge.target) edges.push(newEdge)
         return {
           ...state,
-          currentEdgeIdx: state.currentEdgeIdx + 1,
+          currentEdgeIdx: newEdge.id + 1,
           edges,
           selectedNodeForEdge: undefined,
           editingEdge: undefined
