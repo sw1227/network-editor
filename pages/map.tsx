@@ -189,6 +189,10 @@ const Map: NextPage = () => {
       ]
     })
     state.map?.addLayer(rasterImageLayer((state.imageOpacity == null) ? 0.5 : state.imageOpacity));
+    // z-index
+    state.map?.moveLayer(nodesLayer.id)
+    state.map?.moveLayer(edgesLayer.id)
+    state.map?.moveLayer(editingEdgeLayer.id)
 
     // Fit bounds to the image
     const minLng = Math.min(...Object.values(vertices).map(v => v.lng))
