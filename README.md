@@ -1,34 +1,16 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Network editor on map
 
-## Getting Started
+Easily edit networks with latitude and longitude metadata directly on an interactive web map.
 
-First, run the development server:
+https://sw1227.github.io/network-editor/map/
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+![Map](./assets/map.webp)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Features
+- **Interactive Web Map**: Edit networks composed of nodes and edges directly on a standard web map. Zoom, pan, and create with just a click.
+- **Coordinate Conversion**: Overlay XY-based plan diagrams on a latitude-longitude based map through conversion between geographic and planar coordinates.
+- **Comprehensive Network Data**: Networks maintain connectivity data between nodes, with each node also holding latitude and longitude information.
+- **Export & Import**: Export your edited networks in Node-link JSON or GeoJSON formats. Import your saved JSON files to continue editing.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+<img src="./assets/movie.gif" width="400px" />
